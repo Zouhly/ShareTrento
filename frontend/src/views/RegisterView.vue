@@ -1,7 +1,10 @@
 <template>
   <div class="auth-container">
     <div class="auth-card">
-      <h2>Create Account</h2>
+      <div class="auth-header">
+        <h2>Register</h2>
+        <div class="auth-line"></div>
+      </div>
       
       <div v-if="error" class="alert alert-error">
         {{ error }}
@@ -43,30 +46,32 @@
         </div>
 
         <div class="form-group">
-          <label>I want to:</label>
+          <label>Select Role</label>
           <div class="role-options">
             <label class="role-option" :class="{ active: form.role === 'PASSENGER' }">
               <input type="radio" v-model="form.role" value="PASSENGER" />
-              <span class="role-icon">🎫</span>
-              <span>Find rides (Passenger)</span>
+              <span class="role-icon">[P]</span>
+              <span class="role-label">Passenger</span>
+              <span class="role-desc">Find rides</span>
             </label>
             <label class="role-option" :class="{ active: form.role === 'DRIVER' }">
               <input type="radio" v-model="form.role" value="DRIVER" />
-              <span class="role-icon">🚗</span>
-              <span>Offer rides (Driver)</span>
+              <span class="role-icon">[D]</span>
+              <span class="role-label">Driver</span>
+              <span class="role-desc">Offer rides</span>
             </label>
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary" :disabled="loading">
+        <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
           {{ loading ? 'Creating account...' : 'Create Account' }}
         </button>
       </form>
 
-      <p class="auth-footer">
-        Already have an account? 
-        <router-link to="/login">Login here</router-link>
-      </p>
+      <div class="auth-footer">
+        <span>Already have an account?</span>
+        <router-link to="/login">Login</router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -97,14 +102,10 @@ export default {
         const response = await authApi.register(this.form)
         const { token, user } = response.data.data
 
-        // Store token and user in localStorage
         localStorage.setItem('token', token)
         localStorage.setItem('user', JSON.stringify(user))
-
-        // Trigger storage event for App.vue to update
         window.dispatchEvent(new Event('storage'))
 
-        // Redirect based on role
         if (user.role === 'DRIVER') {
           this.$router.push('/create-trip')
         } else {
@@ -129,50 +130,35 @@ export default {
 }
 
 .auth-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: var(--border);
+  padding: var(--spacing-2xl);
   width: 100%;
   max-width: 450px;
+  background: var(--color-bg-card);
 }
 
-.auth-card h2 {
+.auth-header {
   text-align: center;
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-xl);
 }
 
-.form-group {
-  margin-bottom: 1rem;
+.auth-header h2 {
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: var(--spacing-md);
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #555;
-  font-weight: 500;
-}
-
-.form-group input[type="text"],
-.form-group input[type="email"],
-.form-group input[type="password"] {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #667eea;
+.auth-line {
+  width: 40px;
+  height: 1px;
+  background: var(--color-border);
+  margin: 0 auto;
 }
 
 .role-options {
   display: flex;
-  gap: 1rem;
-  margin-top: 0.5rem;
+  gap: var(--spacing-md);
 }
 
 .role-option {
@@ -180,70 +166,57 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem;
-  border: 2px solid #ddd;
-  border-radius: 8px;
+  padding: var(--spacing-lg);
+  border: var(--border);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
+  text-align: center;
 }
 
 .role-option input[type="radio"] {
   display: none;
 }
 
+.role-option:hover {
+  border-color: var(--color-text);
+}
+
 .role-option.active {
-  border-color: #667eea;
-  background: #f0f4ff;
+  background: var(--color-text);
+  color: var(--color-bg);
 }
 
 .role-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
 }
 
-.btn {
-  width: 100%;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-top: 1rem;
+.role-label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.btn-primary {
-  background: #667eea;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #5a6fd6;
-}
-
-.btn-primary:disabled {
-  background: #a0aec0;
-  cursor: not-allowed;
-}
-
-.alert {
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.alert-error {
-  background: #fed7d7;
-  color: #c53030;
-  border: 1px solid #fc8181;
+.role-desc {
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
+  margin-top: var(--spacing-xs);
 }
 
 .auth-footer {
   text-align: center;
-  margin-top: 1.5rem;
-  color: #666;
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-lg);
+  border-top: var(--border-light);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }
 
 .auth-footer a {
-  color: #667eea;
+  margin-left: var(--spacing-sm);
+  font-weight: 500;
 }
 </style>

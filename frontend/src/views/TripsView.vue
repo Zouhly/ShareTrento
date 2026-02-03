@@ -1,10 +1,15 @@
 <template>
   <div class="trips-view">
-    <h1>Available Trips</h1>
+    <div class="page-header">
+      <h1>Available Trips</h1>
+      <div class="header-line"></div>
+    </div>
 
     <!-- Search Form -->
     <div class="search-card">
-      <h3>Search Trips</h3>
+      <div class="search-header">
+        <span class="search-label">Search</span>
+      </div>
       <form @submit.prevent="searchTrips" class="search-form">
         <div class="form-row">
           <div class="form-group">
@@ -36,57 +41,56 @@
         </div>
         <div class="search-actions">
           <button type="submit" class="btn btn-primary">Search</button>
-          <button type="button" class="btn btn-secondary" @click="loadAllTrips">Show All</button>
+          <button type="button" class="btn" @click="loadAllTrips">Show All</button>
         </div>
       </form>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="loading">Loading trips...</div>
+    <div v-if="loading" class="loading">Loading...</div>
 
-    <!-- Error State -->
+    <!-- Alerts -->
     <div v-if="error" class="alert alert-error">{{ error }}</div>
-
-    <!-- Success Message -->
     <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
 
-    <!-- Trips List -->
-    <div v-if="!loading && trips.length === 0" class="no-trips">
+    <!-- Empty State -->
+    <div v-if="!loading && trips.length === 0" class="empty-state">
       <p>No trips found. Try adjusting your search criteria.</p>
     </div>
 
+    <!-- Trips Grid -->
     <div class="trips-grid" v-if="trips.length > 0">
       <div v-for="trip in trips" :key="trip._id" class="trip-card">
-        <div class="trip-header">
-          <span class="trip-route">{{ trip.origin }} → {{ trip.destination }}</span>
-          <span class="trip-seats" :class="{ 'low-seats': trip.availableSeats <= 1 }">
+        <div class="card-header">
+          <span class="trip-route">{{ trip.origin }} - {{ trip.destination }}</span>
+          <span class="badge" :class="trip.availableSeats <= 1 ? 'badge-warning' : 'badge-success'">
             {{ trip.availableSeats }} seat{{ trip.availableSeats !== 1 ? 's' : '' }}
           </span>
         </div>
         
-        <div class="trip-details">
-          <div class="trip-time">
-            <span class="label">Departure:</span>
-            <span>{{ formatDate(trip.departureTime) }}</span>
+        <div class="card-body">
+          <div class="trip-detail">
+            <span class="detail-label">Departure</span>
+            <span class="detail-value">{{ formatDate(trip.departureTime) }}</span>
           </div>
-          <div class="trip-driver">
-            <span class="label">Driver:</span>
-            <span>{{ trip.driverId?.name || 'Unknown' }}</span>
+          <div class="trip-detail">
+            <span class="detail-label">Driver</span>
+            <span class="detail-value">{{ trip.driverId?.name || 'Unknown' }}</span>
           </div>
         </div>
 
-        <div class="trip-actions" v-if="canBook">
+        <div class="card-footer" v-if="canBook">
           <button 
             @click="joinTrip(trip._id)" 
-            class="btn btn-primary"
+            class="btn btn-primary btn-block"
             :disabled="trip.availableSeats === 0 || bookingInProgress"
           >
             {{ bookingInProgress === trip._id ? 'Booking...' : 'Join Trip' }}
           </button>
         </div>
 
-        <div class="trip-actions" v-else-if="!isLoggedIn">
-          <router-link to="/login" class="btn btn-secondary">Login to Book</router-link>
+        <div class="card-footer" v-else-if="!isLoggedIn">
+          <router-link to="/login" class="btn btn-block">Login to Book</router-link>
         </div>
       </div>
     </div>
@@ -143,7 +147,6 @@ export default {
         return this.loadAllTrips()
       }
 
-      // If all search fields are filled, use the matching search
       if (this.searchForm.origin && this.searchForm.destination && this.searchForm.departureTime) {
         this.loading = true
         this.error = null
@@ -161,7 +164,6 @@ export default {
           this.loading = false
         }
       } else {
-        // Use simple filter for partial searches
         this.loading = true
         this.error = null
         
@@ -187,7 +189,6 @@ export default {
       try {
         await bookingsApi.join(tripId)
         this.successMessage = 'Successfully booked the trip!'
-        // Reload trips to update seat count
         await this.loadAllTrips()
       } catch (err) {
         this.error = err.response?.data?.message || 'Failed to book trip'
@@ -210,176 +211,106 @@ export default {
 </script>
 
 <style scoped>
-.trips-view h1 {
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
+.page-header {
+  margin-bottom: var(--spacing-xl);
 }
 
+.page-header h1 {
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--spacing-md);
+}
+
+.header-line {
+  width: 60px;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* Search Card */
 .search-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
+  border: var(--border);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  background: var(--color-bg-card);
 }
 
-.search-card h3 {
-  margin-bottom: 1rem;
-  color: #2c3e50;
+.search-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.search-label {
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
 }
 
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #555;
-  font-weight: 500;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
 }
 
 .search-actions {
   display: flex;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  text-align: center;
-}
-
-.btn-primary {
-  background: #667eea;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #5a6fd6;
-}
-
-.btn-primary:disabled {
-  background: #a0aec0;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background: #e2e8f0;
-  color: #4a5568;
-}
-
-.btn-secondary:hover {
-  background: #cbd5e0;
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: #666;
-}
-
-.alert {
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.alert-error {
-  background: #fed7d7;
-  color: #c53030;
-}
-
-.alert-success {
-  background: #c6f6d5;
-  color: #276749;
-}
-
-.no-trips {
-  text-align: center;
-  padding: 2rem;
-  background: white;
-  border-radius: 8px;
-  color: #666;
-}
-
+/* Trips Grid */
 .trips-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
+  gap: var(--spacing-lg);
 }
 
 .trip-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
+  border: var(--border);
+  background: var(--color-bg-card);
 }
 
-.trip-header {
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  padding: var(--spacing-lg);
+  border-bottom: var(--border-light);
 }
 
 .trip-route {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 1.1rem;
+  font-weight: 500;
+  font-size: var(--font-size-base);
 }
 
-.trip-seats {
-  background: #c6f6d5;
-  color: #276749;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
+.card-body {
+  padding: var(--spacing-lg);
 }
 
-.trip-seats.low-seats {
-  background: #feebc8;
-  color: #c05621;
+.trip-detail {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
 }
 
-.trip-details {
-  margin-bottom: 1rem;
+.trip-detail:last-child {
+  margin-bottom: 0;
 }
 
-.trip-details > div {
-  margin-bottom: 0.5rem;
+.detail-label {
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
 }
 
-.label {
-  color: #718096;
-  margin-right: 0.5rem;
+.detail-value {
+  font-size: var(--font-size-sm);
 }
 
-.trip-actions {
-  border-top: 1px solid #e2e8f0;
-  padding-top: 1rem;
-}
-
-.trip-actions .btn {
-  width: 100%;
+.card-footer {
+  padding: var(--spacing-lg);
+  border-top: var(--border-light);
 }
 </style>

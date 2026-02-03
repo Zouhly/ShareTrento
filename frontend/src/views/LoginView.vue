@@ -1,7 +1,10 @@
 <template>
   <div class="auth-container">
     <div class="auth-card">
-      <h2>Login to ShareTrento</h2>
+      <div class="auth-header">
+        <h2>Login</h2>
+        <div class="auth-line"></div>
+      </div>
       
       <div v-if="error" class="alert alert-error">
         {{ error }}
@@ -26,19 +29,19 @@
             id="password"
             v-model="form.password"
             required
-            placeholder="Your password"
+            placeholder="Enter password"
           />
         </div>
 
-        <button type="submit" class="btn btn-primary" :disabled="loading">
-          {{ loading ? 'Logging in...' : 'Login' }}
+        <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
+          {{ loading ? 'Signing in...' : 'Sign In' }}
         </button>
       </form>
 
-      <p class="auth-footer">
-        Don't have an account? 
-        <router-link to="/register">Register here</router-link>
-      </p>
+      <div class="auth-footer">
+        <span>Don't have an account?</span>
+        <router-link to="/register">Register</router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -67,14 +70,10 @@ export default {
         const response = await authApi.login(this.form)
         const { token, user } = response.data.data
 
-        // Store token and user in localStorage
         localStorage.setItem('token', token)
         localStorage.setItem('user', JSON.stringify(user))
-
-        // Trigger storage event for App.vue to update
         window.dispatchEvent(new Event('storage'))
 
-        // Redirect based on role
         if (user.role === 'DRIVER') {
           this.$router.push('/my-trips')
         } else {
@@ -99,87 +98,43 @@ export default {
 }
 
 .auth-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: var(--border);
+  padding: var(--spacing-2xl);
   width: 100%;
   max-width: 400px;
+  background: var(--color-bg-card);
 }
 
-.auth-card h2 {
+.auth-header {
   text-align: center;
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-xl);
 }
 
-.form-group {
-  margin-bottom: 1rem;
+.auth-header h2 {
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: var(--spacing-md);
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #555;
-  font-weight: 500;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.btn {
-  width: 100%;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-top: 1rem;
-}
-
-.btn-primary {
-  background: #667eea;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #5a6fd6;
-}
-
-.btn-primary:disabled {
-  background: #a0aec0;
-  cursor: not-allowed;
-}
-
-.alert {
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.alert-error {
-  background: #fed7d7;
-  color: #c53030;
-  border: 1px solid #fc8181;
+.auth-line {
+  width: 40px;
+  height: 1px;
+  background: var(--color-border);
+  margin: 0 auto;
 }
 
 .auth-footer {
   text-align: center;
-  margin-top: 1.5rem;
-  color: #666;
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-lg);
+  border-top: var(--border-light);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }
 
 .auth-footer a {
-  color: #667eea;
+  margin-left: var(--spacing-sm);
+  font-weight: 500;
 }
 </style>

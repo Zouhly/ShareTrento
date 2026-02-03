@@ -2,6 +2,9 @@ import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
 
+// Import global styles
+import './assets/styles.css'
+
 // Import views
 import HomeView from './views/HomeView.vue'
 import LoginView from './views/LoginView.vue'

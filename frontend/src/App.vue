@@ -1,24 +1,26 @@
 <template>
   <div id="app">
     <nav class="navbar">
-      <div class="nav-brand">
-        <router-link to="/">🚗 ShareTrento</router-link>
-      </div>
-      <div class="nav-links">
-        <router-link to="/trips">Browse Trips</router-link>
+      <div class="nav-container">
+        <router-link to="/" class="nav-brand">ShareTrento</router-link>
         
-        <template v-if="isLoggedIn">
-          <router-link v-if="isDriver" to="/create-trip">Create Trip</router-link>
-          <router-link v-if="isDriver" to="/my-trips">My Trips</router-link>
-          <router-link v-if="isPassenger" to="/my-bookings">My Bookings</router-link>
-          <span class="user-info">{{ user?.name }} ({{ user?.role }})</span>
-          <button @click="logout" class="btn-logout">Logout</button>
-        </template>
-        
-        <template v-else>
-          <router-link to="/login">Login</router-link>
-          <router-link to="/register">Register</router-link>
-        </template>
+        <div class="nav-links">
+          <router-link to="/trips">Browse</router-link>
+          
+          <template v-if="isLoggedIn">
+            <router-link v-if="isDriver" to="/create-trip">Create</router-link>
+            <router-link v-if="isDriver" to="/my-trips">My Trips</router-link>
+            <router-link v-if="isPassenger" to="/my-bookings">Bookings</router-link>
+            <span class="nav-divider"></span>
+            <span class="user-badge">{{ user?.name }}</span>
+            <button @click="logout" class="nav-btn">Logout</button>
+          </template>
+          
+          <template v-else>
+            <router-link to="/login">Login</router-link>
+            <router-link to="/register" class="nav-btn-outline">Register</router-link>
+          </template>
+        </div>
       </div>
     </nav>
 
@@ -27,7 +29,11 @@
     </main>
 
     <footer class="footer">
-      <p>ShareTrento - University Software Engineering Project</p>
+      <div class="footer-content">
+        <span>ShareTrento</span>
+        <span class="footer-divider">|</span>
+        <span>Software Engineering Project</span>
+      </div>
     </footer>
   </div>
 </template>
@@ -53,7 +59,6 @@ export default {
   },
   created() {
     this.loadUser()
-    // Listen for storage changes (login/logout in other tabs)
     window.addEventListener('storage', this.loadUser)
   },
   methods: {
@@ -78,71 +83,121 @@ export default {
   flex-direction: column;
 }
 
+/* Navbar - Skeletal Style */
 .navbar {
-  background: #2c3e50;
-  padding: 1rem 2rem;
+  border-bottom: var(--border);
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: var(--color-bg-card);
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.nav-brand a {
-  color: white;
-  text-decoration: none;
-  font-size: 1.5rem;
-  font-weight: bold;
+.nav-brand {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  border-bottom: none !important;
 }
 
 .nav-links {
   display: flex;
-  gap: 1rem;
+  gap: var(--spacing-lg);
   align-items: center;
 }
 
 .nav-links a {
-  color: #ecf0f1;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: background 0.3s;
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-secondary);
+  padding: var(--spacing-xs) 0;
+  border-bottom: var(--border-width) solid transparent;
+  transition: all var(--transition-fast);
 }
 
 .nav-links a:hover,
 .nav-links a.router-link-active {
-  background: #34495e;
+  color: var(--color-text);
+  border-bottom-color: var(--color-text);
 }
 
-.user-info {
-  color: #bdc3c7;
-  font-size: 0.9rem;
+.nav-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border-light);
 }
 
-.btn-logout {
-  background: #e74c3c;
-  color: white;
+.user-badge {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nav-btn {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text);
+  background: transparent;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
   cursor: pointer;
+  padding: var(--spacing-xs) 0;
+  border-bottom: var(--border-width) solid transparent;
+  transition: border-color var(--transition-fast);
 }
 
-.btn-logout:hover {
-  background: #c0392b;
+.nav-btn:hover {
+  border-bottom-color: var(--color-text);
 }
 
+.nav-btn-outline {
+  padding: var(--spacing-xs) var(--spacing-md) !important;
+  border: var(--border) !important;
+  transition: all var(--transition-fast);
+}
+
+.nav-btn-outline:hover {
+  background: var(--color-text);
+  color: var(--color-bg) !important;
+}
+
+/* Main Content */
 .main-content {
   flex: 1;
-  padding: 2rem;
+  padding: var(--spacing-2xl);
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
 }
 
+/* Footer - Minimal */
 .footer {
-  background: #2c3e50;
-  color: #ecf0f1;
+  border-top: var(--border);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  background: var(--color-bg-card);
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
   text-align: center;
-  padding: 1rem;
-  margin-top: auto;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.footer-divider {
+  margin: 0 var(--spacing-md);
+  color: var(--color-border-light);
 }
 </style>
