@@ -1,64 +1,70 @@
 <template>
   <div class="my-trips-view">
-    <h1>My Trips</h1>
-    <p class="subtitle">Trips you have created as a driver</p>
+    <div class="page-header">
+      <div class="header-content">
+        <div>
+          <h1>My Trips</h1>
+          <p class="subtitle">Trips you have created as a driver</p>
+        </div>
+        <router-link to="/create-trip" class="btn btn-primary">+ New Trip</router-link>
+      </div>
+      <div class="header-line"></div>
+    </div>
 
-    <router-link to="/create-trip" class="btn btn-primary create-btn">
-      + Create New Trip
-    </router-link>
-
-    <div v-if="loading" class="loading">Loading your trips...</div>
+    <div v-if="loading" class="loading">Loading...</div>
     <div v-if="error" class="alert alert-error">{{ error }}</div>
 
-    <div v-if="!loading && trips.length === 0" class="no-trips">
+    <div v-if="!loading && trips.length === 0" class="empty-state">
       <p>You haven't created any trips yet.</p>
       <router-link to="/create-trip" class="btn btn-primary">Create Your First Trip</router-link>
     </div>
 
     <div class="trips-list" v-if="trips.length > 0">
       <div v-for="trip in trips" :key="trip._id" class="trip-card">
-        <div class="trip-header">
-          <span class="trip-route">{{ trip.origin }} → {{ trip.destination }}</span>
-          <span class="trip-status" :class="getTripStatus(trip).class">
+        <div class="card-header">
+          <span class="trip-route">{{ trip.origin }} - {{ trip.destination }}</span>
+          <span class="badge" :class="getTripStatus(trip).class">
             {{ getTripStatus(trip).text }}
           </span>
         </div>
         
-        <div class="trip-details">
-          <div>
-            <span class="label">Departure:</span>
-            <span>{{ formatDate(trip.departureTime) }}</span>
+        <div class="card-body">
+          <div class="trip-detail">
+            <span class="detail-label">Departure</span>
+            <span class="detail-value">{{ formatDate(trip.departureTime) }}</span>
           </div>
-          <div>
-            <span class="label">Available Seats:</span>
-            <span>{{ trip.availableSeats }}</span>
+          <div class="trip-detail">
+            <span class="detail-label">Available Seats</span>
+            <span class="detail-value">{{ trip.availableSeats }}</span>
           </div>
         </div>
 
-        <div class="trip-bookings" v-if="tripBookings[trip._id]">
-          <h4>Passengers ({{ tripBookings[trip._id].length }})</h4>
-          <ul v-if="tripBookings[trip._id].length > 0">
+        <div class="passengers-section" v-if="tripBookings[trip._id]">
+          <div class="passengers-header">
+            <span class="detail-label">Passengers ({{ tripBookings[trip._id].length }})</span>
+          </div>
+          <ul v-if="tripBookings[trip._id].length > 0" class="passengers-list">
             <li v-for="booking in tripBookings[trip._id]" :key="booking._id">
-              {{ booking.passengerId?.name }} ({{ booking.passengerId?.email }})
+              {{ booking.passengerId?.name }} / {{ booking.passengerId?.email }}
             </li>
           </ul>
           <p v-else class="no-passengers">No passengers yet</p>
         </div>
 
-        <div class="trip-actions">
+        <div class="card-footer">
           <button 
             @click="loadBookings(trip._id)" 
-            class="btn btn-secondary"
+            class="btn btn-sm"
             v-if="!tripBookings[trip._id]"
           >
             View Passengers
           </button>
           <button 
             @click="deleteTrip(trip._id)" 
-            class="btn btn-danger"
+            class="btn btn-danger btn-sm"
             :disabled="deleting === trip._id"
           >
-            {{ deleting === trip._id ? 'Deleting...' : 'Delete Trip' }}
+            {{ deleting === trip._id ? 'Deleting...' : 'Delete' }}
           </button>
         </div>
       </div>
@@ -131,12 +137,12 @@ export default {
       const departure = new Date(trip.departureTime)
       
       if (departure < now) {
-        return { text: 'Completed', class: 'status-completed' }
+        return { text: 'Completed', class: 'badge-muted' }
       }
       if (trip.availableSeats === 0) {
-        return { text: 'Full', class: 'status-full' }
+        return { text: 'Full', class: 'badge-warning' }
       }
-      return { text: 'Active', class: 'status-active' }
+      return { text: 'Active', class: 'badge-success' }
     },
     formatDate(dateString) {
       const date = new Date(dateString)
@@ -153,175 +159,117 @@ export default {
 </script>
 
 <style scoped>
-.my-trips-view h1 {
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
+.page-header {
+  margin-bottom: var(--spacing-xl);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-md);
+}
+
+.page-header h1 {
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--spacing-xs);
 }
 
 .subtitle {
-  color: #718096;
-  margin-bottom: 1.5rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
 }
 
-.create-btn {
-  display: inline-block;
-  margin-bottom: 1.5rem;
-  text-decoration: none;
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: #666;
-}
-
-.alert {
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.alert-error {
-  background: #fed7d7;
-  color: #c53030;
-}
-
-.no-trips {
-  text-align: center;
-  padding: 2rem;
-  background: white;
-  border-radius: 8px;
-}
-
-.no-trips p {
-  margin-bottom: 1rem;
-  color: #666;
+.header-line {
+  width: 100%;
+  height: 1px;
+  background: var(--color-border);
 }
 
 .trips-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--spacing-lg);
 }
 
 .trip-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
+  border: var(--border);
+  background: var(--color-bg-card);
 }
 
-.trip-header {
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  padding: var(--spacing-lg);
+  border-bottom: var(--border-light);
 }
 
 .trip-route {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 1.1rem;
+  font-weight: 500;
 }
 
-.trip-status {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
+.card-body {
+  padding: var(--spacing-lg);
 }
 
-.status-active {
-  background: #c6f6d5;
-  color: #276749;
+.trip-detail {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
 }
 
-.status-full {
-  background: #feebc8;
-  color: #c05621;
+.trip-detail:last-child {
+  margin-bottom: 0;
 }
 
-.status-completed {
-  background: #e2e8f0;
-  color: #4a5568;
+.detail-label {
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
 }
 
-.trip-details {
-  margin-bottom: 1rem;
+.detail-value {
+  font-size: var(--font-size-sm);
 }
 
-.trip-details > div {
-  margin-bottom: 0.5rem;
+.passengers-section {
+  padding: var(--spacing-lg);
+  border-top: var(--border-light);
+  background: var(--color-bg);
 }
 
-.label {
-  color: #718096;
-  margin-right: 0.5rem;
+.passengers-header {
+  margin-bottom: var(--spacing-sm);
 }
 
-.trip-bookings {
-  background: #f7fafc;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.trip-bookings h4 {
-  margin-bottom: 0.5rem;
-  color: #2c3e50;
-}
-
-.trip-bookings ul {
+.passengers-list {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
-.trip-bookings li {
-  padding: 0.25rem 0;
-  color: #4a5568;
+.passengers-list li {
+  padding: var(--spacing-xs) 0;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-mono);
 }
 
 .no-passengers {
-  color: #718096;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
   font-style: italic;
+  margin: 0;
 }
 
-.trip-actions {
+.card-footer {
   display: flex;
-  gap: 1rem;
-  border-top: 1px solid #e2e8f0;
-  padding-top: 1rem;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.btn-primary {
-  background: #667eea;
-  color: white;
-}
-
-.btn-secondary {
-  background: #e2e8f0;
-  color: #4a5568;
-}
-
-.btn-danger {
-  background: #fc8181;
-  color: white;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: #f56565;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-top: var(--border-light);
 }
 </style>

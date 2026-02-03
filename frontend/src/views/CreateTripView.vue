@@ -1,6 +1,9 @@
 <template>
   <div class="create-trip-view">
-    <h1>Create a New Trip</h1>
+    <div class="page-header">
+      <h1>Create Trip</h1>
+      <div class="header-line"></div>
+    </div>
 
     <div class="form-card">
       <div v-if="error" class="alert alert-error">{{ error }}</div>
@@ -8,7 +11,7 @@
 
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
-          <label for="origin">Origin *</label>
+          <label for="origin">Origin</label>
           <input
             type="text"
             id="origin"
@@ -19,7 +22,7 @@
         </div>
 
         <div class="form-group">
-          <label for="destination">Destination *</label>
+          <label for="destination">Destination</label>
           <input
             type="text"
             id="destination"
@@ -30,7 +33,7 @@
         </div>
 
         <div class="form-group">
-          <label for="departureTime">Departure Time *</label>
+          <label for="departureTime">Departure Time</label>
           <input
             type="datetime-local"
             id="departureTime"
@@ -41,7 +44,7 @@
         </div>
 
         <div class="form-group">
-          <label for="availableSeats">Available Seats *</label>
+          <label for="availableSeats">Available Seats</label>
           <input
             type="number"
             id="availableSeats"
@@ -53,7 +56,7 @@
           <small>Maximum 8 seats</small>
         </div>
 
-        <button type="submit" class="btn btn-primary" :disabled="loading">
+        <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
           {{ loading ? 'Creating...' : 'Create Trip' }}
         </button>
       </form>
@@ -81,7 +84,6 @@ export default {
   },
   computed: {
     minDateTime() {
-      // Minimum is now + 1 hour
       const now = new Date()
       now.setHours(now.getHours() + 1)
       return now.toISOString().slice(0, 16)
@@ -103,7 +105,6 @@ export default {
         
         this.success = 'Trip created successfully!'
         
-        // Reset form
         this.form = {
           origin: '',
           destination: '',
@@ -111,7 +112,6 @@ export default {
           availableSeats: 3
         }
 
-        // Redirect to my trips after a delay
         setTimeout(() => {
           this.$router.push('/my-trips')
         }, 1500)
@@ -126,84 +126,27 @@ export default {
 </script>
 
 <style scoped>
-.create-trip-view h1 {
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
+.page-header {
+  margin-bottom: var(--spacing-xl);
+}
+
+.page-header h1 {
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--spacing-md);
+}
+
+.header-line {
+  width: 60px;
+  height: 1px;
+  background: var(--color-border);
 }
 
 .form-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: var(--border);
+  padding: var(--spacing-2xl);
   max-width: 500px;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #555;
-  font-weight: 500;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.form-group small {
-  color: #718096;
-  font-size: 0.875rem;
-}
-
-.btn {
-  width: 100%;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-.btn-primary {
-  background: #667eea;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #5a6fd6;
-}
-
-.btn-primary:disabled {
-  background: #a0aec0;
-  cursor: not-allowed;
-}
-
-.alert {
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.alert-error {
-  background: #fed7d7;
-  color: #c53030;
-}
-
-.alert-success {
-  background: #c6f6d5;
-  color: #276749;
+  background: var(--color-bg-card);
 }
 </style>
