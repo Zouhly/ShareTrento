@@ -93,4 +93,71 @@ router.post('/login', authController.login);
  */
 router.get('/me', authenticate, authController.getMe);
 
+/**
+ * @swagger
+ * /api/auth/profile:
+ *   put:
+ *     summary: Update user profile
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: John Doe Updated
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: john.new@example.com
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       401:
+ *         description: Not authenticated
+ *       409:
+ *         description: Email already in use
+ */
+router.put('/profile', authenticate, authController.updateProfile);
+
+/**
+ * @swagger
+ * /api/auth/password:
+ *   put:
+ *     summary: Change password
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 example: oldpassword123
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 6
+ *                 example: newpassword123
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Current password incorrect
+ */
+router.put('/password', authenticate, authController.changePassword);
+
 module.exports = router;

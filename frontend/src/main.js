@@ -13,6 +13,7 @@ import TripsView from './views/TripsView.vue'
 import MyTripsView from './views/MyTripsView.vue'
 import MyBookingsView from './views/MyBookingsView.vue'
 import CreateTripView from './views/CreateTripView.vue'
+import ProfileView from './views/ProfileView.vue'
 
 // Router configuration
 const routes = [
@@ -22,7 +23,8 @@ const routes = [
   { path: '/trips', name: 'trips', component: TripsView },
   { path: '/my-trips', name: 'my-trips', component: MyTripsView, meta: { requiresAuth: true, role: 'DRIVER' } },
   { path: '/my-bookings', name: 'my-bookings', component: MyBookingsView, meta: { requiresAuth: true } },
-  { path: '/create-trip', name: 'create-trip', component: CreateTripView, meta: { requiresAuth: true, role: 'DRIVER' } }
+  { path: '/create-trip', name: 'create-trip', component: CreateTripView, meta: { requiresAuth: true, role: 'DRIVER' } },
+  { path: '/profile', name: 'profile', component: ProfileView, meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({
