@@ -38,7 +38,8 @@ describe('Trip Endpoints', () => {
       origin: 'Trento Centro',
       destination: 'Rovereto',
       departureTime: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
-      availableSeats: 3
+      availableSeats: 3,
+      price: 5
     };
 
     it('should allow DRIVER to create a trip', async () => {
@@ -108,7 +109,8 @@ describe('Trip Endpoints', () => {
           origin: 'Trento',
           destination: 'Rovereto',
           departureTime: new Date(Date.now() + 86400000).toISOString(),
-          availableSeats: 3
+          availableSeats: 3,
+          price: 5
         });
 
       await request(app)
@@ -118,7 +120,8 @@ describe('Trip Endpoints', () => {
           origin: 'Trento',
           destination: 'Bolzano',
           departureTime: new Date(Date.now() + 172800000).toISOString(),
-          availableSeats: 2
+          availableSeats: 2,
+          price: 8
         });
     });
 
@@ -160,7 +163,8 @@ describe('Trip Endpoints', () => {
           origin: 'Trento Centro',
           destination: 'Rovereto',
           departureTime: baseTime.toISOString(),
-          availableSeats: 3
+          availableSeats: 3,
+          price: 5
         });
 
       // Trip 20 minutes later (within 30 min window)
@@ -171,7 +175,8 @@ describe('Trip Endpoints', () => {
           origin: 'Trento Centro',
           destination: 'Rovereto',
           departureTime: new Date(baseTime.getTime() + 20 * 60000).toISOString(),
-          availableSeats: 2
+          availableSeats: 2,
+          price: 6
         });
 
       // Trip 2 hours later (outside 30 min window)
@@ -182,7 +187,8 @@ describe('Trip Endpoints', () => {
           origin: 'Trento Centro',
           destination: 'Rovereto',
           departureTime: new Date(baseTime.getTime() + 2 * 3600000).toISOString(),
-          availableSeats: 4
+          availableSeats: 4,
+          price: 7
         });
     });
 
@@ -212,7 +218,8 @@ describe('Trip Endpoints', () => {
           origin: 'Trento',
           destination: 'Rovereto',
           departureTime: new Date(Date.now() + 86400000).toISOString(),
-          availableSeats: 3
+          availableSeats: 3,
+          price: 5
         });
 
       const res = await request(app)

@@ -7,13 +7,13 @@ const { Trip, Booking } = require('../models');
  */
 const createTrip = async (req, res, next) => {
   try {
-    const { origin, destination, departureTime, availableSeats } = req.body;
+    const { origin, destination, departureTime, availableSeats, price } = req.body;
 
     // Validate required fields
-    if (!origin || !destination || !departureTime || availableSeats === undefined) {
+    if (!origin || !destination || !departureTime || availableSeats === undefined || price === undefined) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide origin, destination, departureTime, and availableSeats'
+        message: 'Please provide origin, destination, departureTime, availableSeats, and price'
       });
     }
 
@@ -33,12 +33,21 @@ const createTrip = async (req, res, next) => {
       });
     }
 
+    // Validate price
+    if (price < 0 || price > 1000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Price must be between 0 and 1000'
+      });
+    }
+
     // Create trip with current user as driver
     const trip = new Trip({
       origin,
       destination,
       departureTime: new Date(departureTime),
       availableSeats,
+      price,
       driverId: req.user._id
     });
 

@@ -77,6 +77,10 @@
             <span class="detail-label">Driver</span>
             <span class="detail-value">{{ trip.driverId?.name || 'Unknown' }}</span>
           </div>
+          <div class="trip-detail">
+            <span class="detail-label">Price</span>
+            <span class="detail-value price">{{ trip.price === 0 ? 'Free' : `EUR ${trip.price.toFixed(2)}` }}</span>
+          </div>
         </div>
 
         <div class="card-footer" v-if="canBook">
@@ -307,6 +311,10 @@ export default {
 
 .detail-value {
   font-size: var(--font-size-sm);
+}
+
+.detail-value.price {
+  font-weight: 600;
 }
 
 .card-footer {

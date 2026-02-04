@@ -32,6 +32,10 @@
             <span class="detail-value">{{ formatDate(booking.tripId?.departureTime) }}</span>
           </div>
           <div class="booking-detail">
+            <span class="detail-label">Price</span>
+            <span class="detail-value price">{{ booking.tripId?.price === 0 ? 'Free' : `EUR ${booking.tripId?.price?.toFixed(2) || 'N/A'}` }}</span>
+          </div>
+          <div class="booking-detail">
             <span class="detail-label">Booked On</span>
             <span class="detail-value">{{ formatDate(booking.createdAt) }}</span>
           </div>
