@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
  */
 const register = async (req, res, next) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, car } = req.body;
 
     // Validate required fields
     if (!name || !email || !password || !role) {
@@ -48,12 +48,24 @@ const register = async (req, res, next) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     // Create new user
-    const user = new User({
+    const userData = {
       name,
       email: email.toLowerCase(),
       passwordHash,
       role
-    });
+    };
+
+    // Add car info if driver and car data provided
+    if (role === 'DRIVER' && car) {
+      userData.car = {
+        brand: car.brand,
+        model: car.model,
+        color: car.color,
+        seats: car.seats
+      };
+    }
+
+    const user = new User(userData);
 
     await user.save();
 
@@ -150,13 +162,23 @@ const getMe = async (req, res, next) => {
  */
 const updateProfile = async (req, res, next) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, car } = req.body;
     const userId = req.user._id;
 
     // Build update object with only provided fields
     const updateData = {};
     if (name) updateData.name = name;
     if (email) updateData.email = email.toLowerCase();
+
+    // Handle car info update for drivers
+    if (req.user.role === 'DRIVER' && car) {
+      updateData.car = {
+        brand: car.brand || req.user.car?.brand,
+        model: car.model || req.user.car?.model,
+        color: car.color || req.user.car?.color,
+        seats: car.seats || req.user.car?.seats
+      };
+    }
 
     // Check if email is being changed and if it's already taken
     if (email && email.toLowerCase() !== req.user.email) {

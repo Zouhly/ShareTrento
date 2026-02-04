@@ -52,6 +52,67 @@
         </form>
       </div>
 
+      <!-- Car Info Card (DRIVER only) -->
+      <div class="profile-card" v-if="user?.role === 'DRIVER'">
+        <div class="card-header">
+          <span class="card-title">Car Information</span>
+        </div>
+
+        <div v-if="carError" class="alert alert-error">{{ carError }}</div>
+        <div v-if="carSuccess" class="alert alert-success">{{ carSuccess }}</div>
+
+        <form @submit.prevent="handleUpdateCar">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="carBrand">Brand</label>
+              <input
+                type="text"
+                id="carBrand"
+                v-model="carForm.brand"
+                placeholder="e.g., Fiat"
+              />
+            </div>
+            <div class="form-group">
+              <label for="carModel">Model</label>
+              <input
+                type="text"
+                id="carModel"
+                v-model="carForm.model"
+                placeholder="e.g., Panda"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="carColor">Color</label>
+              <input
+                type="text"
+                id="carColor"
+                v-model="carForm.color"
+                placeholder="e.g., White"
+              />
+            </div>
+            <div class="form-group">
+              <label for="carSeats">Total Seats</label>
+              <input
+                type="number"
+                id="carSeats"
+                v-model.number="carForm.seats"
+                min="1"
+                max="9"
+                placeholder="e.g., 4"
+              />
+              <small>Including driver</small>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" :disabled="carLoading">
+            {{ carLoading ? 'Saving...' : 'Save Car Info' }}
+          </button>
+        </form>
+      </div>
+
       <!-- Change Password Card -->
       <div class="profile-card">
         <div class="card-header">
@@ -117,15 +178,24 @@ export default {
         name: '',
         email: ''
       },
+      carForm: {
+        brand: '',
+        model: '',
+        color: '',
+        seats: null
+      },
       passwordForm: {
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       },
       profileLoading: false,
+      carLoading: false,
       passwordLoading: false,
       profileError: null,
       profileSuccess: null,
+      carError: null,
+      carSuccess: null,
       passwordError: null,
       passwordSuccess: null
     }
@@ -140,6 +210,14 @@ export default {
         this.user = response.data.data.user
         this.profileForm.name = this.user.name
         this.profileForm.email = this.user.email
+        
+        // Populate car form for drivers
+        if (this.user.role === 'DRIVER' && this.user.car) {
+          this.carForm.brand = this.user.car.brand || ''
+          this.carForm.model = this.user.car.model || ''
+          this.carForm.color = this.user.car.color || ''
+          this.carForm.seats = this.user.car.seats || null
+        }
       } catch (err) {
         this.profileError = 'Failed to load profile'
       }
@@ -162,6 +240,26 @@ export default {
         this.profileError = err.response?.data?.message || 'Failed to update profile'
       } finally {
         this.profileLoading = false
+      }
+    },
+    async handleUpdateCar() {
+      this.carLoading = true
+      this.carError = null
+      this.carSuccess = null
+
+      try {
+        const response = await authApi.updateProfile({ car: this.carForm })
+        this.user = response.data.data.user
+        
+        // Update localStorage
+        localStorage.setItem('user', JSON.stringify(this.user))
+        window.dispatchEvent(new Event('storage'))
+        
+        this.carSuccess = 'Car information updated successfully'
+      } catch (err) {
+        this.carError = err.response?.data?.message || 'Failed to update car info'
+      } finally {
+        this.carLoading = false
       }
     },
     async handleChangePassword() {
@@ -263,5 +361,17 @@ export default {
   background: var(--color-bg);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+@media (max-width: 500px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

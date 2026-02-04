@@ -77,6 +77,10 @@
             <span class="detail-label">Driver</span>
             <span class="detail-value">{{ trip.driverId?.name || 'Unknown' }}</span>
           </div>
+          <div class="trip-detail" v-if="trip.driverId?.car?.brand">
+            <span class="detail-label">Car</span>
+            <span class="detail-value">{{ formatCar(trip.driverId.car) }}</span>
+          </div>
           <div class="trip-detail">
             <span class="detail-label">Price</span>
             <span class="detail-value price">{{ trip.price === 0 ? 'Free' : `EUR ${trip.price.toFixed(2)}` }}</span>
@@ -209,6 +213,14 @@ export default {
         hour: '2-digit',
         minute: '2-digit'
       })
+    },
+    formatCar(car) {
+      if (!car) return 'N/A'
+      const parts = []
+      if (car.color) parts.push(car.color)
+      if (car.brand) parts.push(car.brand)
+      if (car.model) parts.push(car.model)
+      return parts.join(' ') || 'N/A'
     }
   }
 }
