@@ -91,7 +91,7 @@ tripSchema.statics.findMatchingTrips = async function(criteria) {
     destination: { $regex: new RegExp(`^${destination}$`, 'i') },
     departureTime: { $gte: minTime, $lte: maxTime },
     availableSeats: { $gt: 0 }
-  }).populate('driverId', 'name email');
+  }).populate('driverId', 'name email car');
 };
 
 const Trip = mongoose.model('Trip', tripSchema);

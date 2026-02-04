@@ -25,6 +25,14 @@ const createTrip = async (req, res, next) => {
       });
     }
 
+    // Validate availableSeats against car seats (if driver has car info)
+    if (req.user.car?.seats && availableSeats >= req.user.car.seats) {
+      return res.status(400).json({
+        success: false,
+        message: `Available seats cannot exceed ${req.user.car.seats - 1} (your car has ${req.user.car.seats} total seats including driver)`
+      });
+    }
+
     // Validate departure time is in the future
     if (new Date(departureTime) <= new Date()) {
       return res.status(400).json({
@@ -54,7 +62,7 @@ const createTrip = async (req, res, next) => {
     await trip.save();
 
     // Populate driver info for response
-    await trip.populate('driverId', 'name email');
+    await trip.populate('driverId', 'name email car');
 
     res.status(201).json({
       success: true,
@@ -88,7 +96,7 @@ const getAllTrips = async (req, res, next) => {
     }
 
     const trips = await Trip.find(query)
-      .populate('driverId', 'name email')
+      .populate('driverId', 'name email car')
       .sort({ departureTime: 1 });
 
     res.status(200).json({
@@ -108,7 +116,7 @@ const getAllTrips = async (req, res, next) => {
 const getTripById = async (req, res, next) => {
   try {
     const trip = await Trip.findById(req.params.id)
-      .populate('driverId', 'name email');
+      .populate('driverId', 'name email car');
 
     if (!trip) {
       return res.status(404).json({

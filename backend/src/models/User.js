@@ -33,6 +33,29 @@ const userSchema = new mongoose.Schema({
       message: 'Role must be either DRIVER or PASSENGER'
     },
     required: [true, 'Role is required']
+  },
+  // Car info - only for DRIVER role
+  car: {
+    brand: {
+      type: String,
+      trim: true,
+      maxlength: [50, 'Car brand cannot exceed 50 characters']
+    },
+    model: {
+      type: String,
+      trim: true,
+      maxlength: [50, 'Car model cannot exceed 50 characters']
+    },
+    color: {
+      type: String,
+      trim: true,
+      maxlength: [30, 'Car color cannot exceed 30 characters']
+    },
+    seats: {
+      type: Number,
+      min: [1, 'Car must have at least 1 seat'],
+      max: [9, 'Car cannot have more than 9 seats']
+    }
   }
 }, {
   timestamps: true
