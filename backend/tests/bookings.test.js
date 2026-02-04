@@ -51,7 +51,8 @@ describe('Booking Endpoints', () => {
         origin: 'Trento Centro',
         destination: 'Rovereto',
         departureTime: new Date(Date.now() + 86400000).toISOString(),
-        availableSeats: 2
+        availableSeats: 2,
+        price: 5
       });
     tripId = tripRes.body.data.trip._id;
   });
@@ -114,7 +115,8 @@ describe('Booking Endpoints', () => {
           origin: 'Trento',
           destination: 'Bolzano',
           departureTime: new Date(Date.now() + 86400000).toISOString(),
-          availableSeats: 1
+          availableSeats: 1,
+          price: 10
         });
       const singleSeatTripId = tripRes.body.data.trip._id;
 

@@ -56,6 +56,20 @@
           <small>Maximum 8 seats</small>
         </div>
 
+        <div class="form-group">
+          <label for="price">Price per Seat (EUR)</label>
+          <input
+            type="number"
+            id="price"
+            v-model.number="form.price"
+            required
+            min="0"
+            max="1000"
+            step="0.50"
+          />
+          <small>Set 0 for free rides</small>
+        </div>
+
         <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
           {{ loading ? 'Creating...' : 'Create Trip' }}
         </button>
@@ -75,7 +89,8 @@ export default {
         origin: '',
         destination: '',
         departureTime: '',
-        availableSeats: 3
+        availableSeats: 3,
+        price: 5
       },
       loading: false,
       error: null,
@@ -109,7 +124,8 @@ export default {
           origin: '',
           destination: '',
           departureTime: '',
-          availableSeats: 3
+          availableSeats: 3,
+          price: 5
         }
 
         setTimeout(() => {
