@@ -369,9 +369,28 @@ export default {
   gap: var(--spacing-md);
 }
 
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .card-header {
+    padding: var(--spacing-md);
+  }
+  
+  .profile-card form {
+    padding: var(--spacing-md);
+  }
+}
+
 @media (max-width: 500px) {
   .form-row {
     grid-template-columns: 1fr;
+  }
+  
+  .page-header h1 {
+    font-size: var(--font-size-xl);
   }
 }
 </style>

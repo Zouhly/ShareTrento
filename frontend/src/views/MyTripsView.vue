@@ -280,4 +280,48 @@ export default {
   padding: var(--spacing-lg);
   border-top: var(--border-light);
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .trip-route {
+    word-break: break-word;
+  }
+  
+  .card-body,
+  .card-footer,
+  .passengers-section {
+    padding: var(--spacing-md);
+  }
+  
+  .card-footer {
+    flex-direction: column;
+  }
+  
+  .card-footer .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .trip-detail {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+}
 </style>

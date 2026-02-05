@@ -182,4 +182,22 @@ export default {
   max-width: 500px;
   background: var(--color-bg-card);
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .form-card {
+    padding: var(--spacing-lg);
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .form-card {
+    padding: var(--spacing-md);
+  }
+}
 </style>
