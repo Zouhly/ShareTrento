@@ -17,6 +17,22 @@ const createTrip = async (req, res, next) => {
       });
     }
 
+    // Validate origin location object
+    if (!origin.address || origin.lat === undefined || origin.lng === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Origin must include address, lat, and lng'
+      });
+    }
+
+    // Validate destination location object
+    if (!destination.address || destination.lat === undefined || destination.lng === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Destination must include address, lat, and lng'
+      });
+    }
+
     // Validate availableSeats
     if (availableSeats < 1 || availableSeats > 8) {
       return res.status(400).json({
@@ -87,12 +103,12 @@ const getAllTrips = async (req, res, next) => {
       availableSeats: { $gt: 0 }
     };
 
-    // Optional filters
+    // Optional filters by address text
     if (req.query.origin) {
-      query.origin = { $regex: new RegExp(req.query.origin, 'i') };
+      query['origin.address'] = { $regex: new RegExp(req.query.origin, 'i') };
     }
     if (req.query.destination) {
-      query.destination = { $regex: new RegExp(req.query.destination, 'i') };
+      query['destination.address'] = { $regex: new RegExp(req.query.destination, 'i') };
     }
 
     const trips = await Trip.find(query)

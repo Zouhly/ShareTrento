@@ -12,23 +12,21 @@
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
           <label for="origin">Origin</label>
-          <input
-            type="text"
-            id="origin"
+          <LocationPicker
             v-model="form.origin"
-            required
-            placeholder="e.g., Trento Centro"
+            input-id="origin"
+            placeholder="Search for pickup location..."
+            :show-map="true"
           />
         </div>
 
         <div class="form-group">
           <label for="destination">Destination</label>
-          <input
-            type="text"
-            id="destination"
+          <LocationPicker
             v-model="form.destination"
-            required
-            placeholder="e.g., Rovereto"
+            input-id="destination"
+            placeholder="Search for drop-off location..."
+            :show-map="true"
           />
         </div>
 
@@ -70,7 +68,7 @@
           <small>Set 0 for free rides</small>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
+        <button type="submit" class="btn btn-primary btn-block" :disabled="loading || !isFormValid">
           {{ loading ? 'Creating...' : 'Create Trip' }}
         </button>
       </form>
@@ -80,14 +78,18 @@
 
 <script>
 import { tripsApi } from '../api'
+import LocationPicker from '../components/LocationPicker.vue'
 
 export default {
   name: 'CreateTripView',
+  components: {
+    LocationPicker
+  },
   data() {
     return {
       form: {
-        origin: '',
-        destination: '',
+        origin: { address: '', lat: null, lng: null },
+        destination: { address: '', lat: null, lng: null },
         departureTime: '',
         availableSeats: 3,
         price: 5
@@ -102,18 +104,33 @@ export default {
       const now = new Date()
       now.setHours(now.getHours() + 1)
       return now.toISOString().slice(0, 16)
+    },
+    isFormValid() {
+      return this.form.origin?.lat && 
+             this.form.origin?.lng && 
+             this.form.destination?.lat && 
+             this.form.destination?.lng &&
+             this.form.departureTime
     }
   },
   methods: {
     async handleSubmit() {
+      if (!this.isFormValid) {
+        this.error = 'Please select valid locations from the suggestions'
+        return
+      }
+
       this.loading = true
       this.error = null
       this.success = null
 
       try {
         const tripData = {
-          ...this.form,
-          departureTime: new Date(this.form.departureTime).toISOString()
+          origin: this.form.origin,
+          destination: this.form.destination,
+          departureTime: new Date(this.form.departureTime).toISOString(),
+          availableSeats: this.form.availableSeats,
+          price: this.form.price
         }
 
         await tripsApi.create(tripData)
@@ -121,8 +138,8 @@ export default {
         this.success = 'Trip created successfully!'
         
         this.form = {
-          origin: '',
-          destination: '',
+          origin: { address: '', lat: null, lng: null },
+          destination: { address: '', lat: null, lng: null },
           departureTime: '',
           availableSeats: 3,
           price: 5

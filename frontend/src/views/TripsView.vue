@@ -5,6 +5,22 @@
       <div class="header-line"></div>
     </div>
 
+    <!-- Map Toggle -->
+    <div class="view-toggle">
+      <button 
+        :class="['toggle-btn', { active: viewMode === 'list' }]"
+        @click="viewMode = 'list'"
+      >
+        List View
+      </button>
+      <button 
+        :class="['toggle-btn', { active: viewMode === 'map' }]"
+        @click="viewMode = 'map'"
+      >
+        Map View
+      </button>
+    </div>
+
     <!-- Search Form -->
     <div class="search-card">
       <div class="search-header">
@@ -58,11 +74,16 @@
       <p>No trips found. Try adjusting your search criteria.</p>
     </div>
 
+    <!-- Map View -->
+    <div v-if="viewMode === 'map' && trips.length > 0" class="map-container">
+      <TripMap :trips="trips" @trip-click="scrollToTrip" />
+    </div>
+
     <!-- Trips Grid -->
     <div class="trips-grid" v-if="trips.length > 0">
-      <div v-for="trip in trips" :key="trip._id" class="trip-card">
+      <div v-for="trip in trips" :key="trip._id" :id="'trip-' + trip._id" class="trip-card">
         <div class="card-header">
-          <span class="trip-route">{{ trip.origin }} - {{ trip.destination }}</span>
+          <span class="trip-route">{{ formatLocation(trip.origin) }} - {{ formatLocation(trip.destination) }}</span>
           <span class="badge" :class="trip.availableSeats <= 1 ? 'badge-warning' : 'badge-success'">
             {{ trip.availableSeats }} seat{{ trip.availableSeats !== 1 ? 's' : '' }}
           </span>
@@ -107,9 +128,13 @@
 
 <script>
 import { tripsApi, bookingsApi } from '../api'
+import TripMap from '../components/TripMap.vue'
 
 export default {
   name: 'TripsView',
+  components: {
+    TripMap
+  },
   data() {
     return {
       trips: [],
@@ -117,6 +142,7 @@ export default {
       error: null,
       successMessage: null,
       bookingInProgress: null,
+      viewMode: 'list',
       searchForm: {
         origin: '',
         destination: '',
@@ -137,6 +163,19 @@ export default {
     await this.loadAllTrips()
   },
   methods: {
+    formatLocation(location) {
+      // Handle both old string format and new object format
+      if (typeof location === 'string') return location
+      return location?.address || 'Unknown'
+    },
+    scrollToTrip(trip) {
+      const el = document.getElementById('trip-' + trip._id)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        el.classList.add('highlight')
+        setTimeout(() => el.classList.remove('highlight'), 2000)
+      }
+    },
     async loadAllTrips() {
       this.loading = true
       this.error = null
@@ -332,5 +371,47 @@ export default {
 .card-footer {
   padding: var(--spacing-lg);
   border-top: var(--border-light);
+}
+
+/* View Toggle */
+.view-toggle {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.toggle-btn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: var(--border);
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+
+.toggle-btn.active {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.toggle-btn:hover:not(.active) {
+  background: var(--color-bg);
+}
+
+/* Map Container */
+.map-container {
+  margin-bottom: var(--spacing-xl);
+}
+
+/* Trip Highlight Animation */
+.trip-card.highlight {
+  animation: highlight-pulse 0.5s ease-in-out 2;
+}
+
+@keyframes highlight-pulse {
+  0%, 100% { border-color: var(--color-border); }
+  50% { border-color: var(--color-text); box-shadow: 0 0 10px rgba(0,0,0,0.1); }
 }
 </style>

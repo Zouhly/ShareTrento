@@ -22,7 +22,7 @@
     <div class="trips-list" v-if="trips.length > 0">
       <div v-for="trip in trips" :key="trip._id" class="trip-card">
         <div class="card-header">
-          <span class="trip-route">{{ trip.origin }} - {{ trip.destination }}</span>
+          <span class="trip-route">{{ formatLocation(trip.origin) }} - {{ formatLocation(trip.destination) }}</span>
           <span class="badge" :class="getTripStatus(trip).class">
             {{ getTripStatus(trip).text }}
           </span>
@@ -147,6 +147,10 @@ export default {
         return { text: 'Full', class: 'badge-warning' }
       }
       return { text: 'Active', class: 'badge-success' }
+    },
+    formatLocation(location) {
+      if (typeof location === 'string') return location
+      return location?.address || 'Unknown'
     },
     formatDate(dateString) {
       const date = new Date(dateString)

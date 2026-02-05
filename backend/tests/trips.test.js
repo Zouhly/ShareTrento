@@ -35,8 +35,8 @@ describe('Trip Endpoints', () => {
 
   describe('POST /api/trips', () => {
     const validTrip = {
-      origin: 'Trento Centro',
-      destination: 'Rovereto',
+      origin: { address: 'Trento Centro', lat: 46.0679, lng: 11.1211 },
+      destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
       departureTime: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
       availableSeats: 3,
       price: 5
@@ -50,8 +50,8 @@ describe('Trip Endpoints', () => {
 
       expect(res.statusCode).toBe(201);
       expect(res.body.success).toBe(true);
-      expect(res.body.data.trip.origin).toBe('Trento Centro');
-      expect(res.body.data.trip.destination).toBe('Rovereto');
+      expect(res.body.data.trip.origin.address).toBe('Trento Centro');
+      expect(res.body.data.trip.destination.address).toBe('Rovereto');
       expect(res.body.data.trip.availableSeats).toBe(3);
     });
 
@@ -106,8 +106,8 @@ describe('Trip Endpoints', () => {
         .post('/api/trips')
         .set('Authorization', `Bearer ${driverToken}`)
         .send({
-          origin: 'Trento',
-          destination: 'Rovereto',
+          origin: { address: 'Trento', lat: 46.0679, lng: 11.1211 },
+          destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
           departureTime: new Date(Date.now() + 86400000).toISOString(),
           availableSeats: 3,
           price: 5
@@ -117,8 +117,8 @@ describe('Trip Endpoints', () => {
         .post('/api/trips')
         .set('Authorization', `Bearer ${driverToken}`)
         .send({
-          origin: 'Trento',
-          destination: 'Bolzano',
+          origin: { address: 'Trento', lat: 46.0679, lng: 11.1211 },
+          destination: { address: 'Bolzano', lat: 46.4983, lng: 11.3548 },
           departureTime: new Date(Date.now() + 172800000).toISOString(),
           availableSeats: 2,
           price: 8
@@ -160,8 +160,8 @@ describe('Trip Endpoints', () => {
         .post('/api/trips')
         .set('Authorization', `Bearer ${driverToken}`)
         .send({
-          origin: 'Trento Centro',
-          destination: 'Rovereto',
+          origin: { address: 'Trento Centro', lat: 46.0679, lng: 11.1211 },
+          destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
           departureTime: baseTime.toISOString(),
           availableSeats: 3,
           price: 5
@@ -172,8 +172,8 @@ describe('Trip Endpoints', () => {
         .post('/api/trips')
         .set('Authorization', `Bearer ${driverToken}`)
         .send({
-          origin: 'Trento Centro',
-          destination: 'Rovereto',
+          origin: { address: 'Trento Centro', lat: 46.0679, lng: 11.1211 },
+          destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
           departureTime: new Date(baseTime.getTime() + 20 * 60000).toISOString(),
           availableSeats: 2,
           price: 6
@@ -184,8 +184,8 @@ describe('Trip Endpoints', () => {
         .post('/api/trips')
         .set('Authorization', `Bearer ${driverToken}`)
         .send({
-          origin: 'Trento Centro',
-          destination: 'Rovereto',
+          origin: { address: 'Trento Centro', lat: 46.0679, lng: 11.1211 },
+          destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
           departureTime: new Date(baseTime.getTime() + 2 * 3600000).toISOString(),
           availableSeats: 4,
           price: 7
@@ -198,8 +198,8 @@ describe('Trip Endpoints', () => {
       const res = await request(app)
         .post('/api/trips/search')
         .send({
-          origin: 'Trento Centro',
-          destination: 'Rovereto',
+          origin: { address: 'Trento Centro', lat: 46.0679, lng: 11.1211 },
+          destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
           departureTime: new Date(baseTime.getTime() + 10 * 60000).toISOString()
         });
 
@@ -215,8 +215,8 @@ describe('Trip Endpoints', () => {
         .post('/api/trips')
         .set('Authorization', `Bearer ${driverToken}`)
         .send({
-          origin: 'Trento',
-          destination: 'Rovereto',
+          origin: { address: 'Trento', lat: 46.0679, lng: 11.1211 },
+          destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
           departureTime: new Date(Date.now() + 86400000).toISOString(),
           availableSeats: 3,
           price: 5

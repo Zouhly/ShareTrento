@@ -19,7 +19,7 @@
       <div v-for="booking in bookings" :key="booking._id" class="booking-card">
         <div class="card-header">
           <span class="booking-route">
-            {{ booking.tripId?.origin }} - {{ booking.tripId?.destination }}
+            {{ formatLocation(booking.tripId?.origin) }} - {{ formatLocation(booking.tripId?.destination) }}
           </span>
           <span class="badge" :class="`badge-${getStatusClass(booking.status)}`">
             {{ booking.status }}
@@ -115,6 +115,10 @@ export default {
         case 'CANCELLED': return 'danger'
         default: return 'warning'
       }
+    },
+    formatLocation(location) {
+      if (typeof location === 'string') return location
+      return location?.address || 'Unknown'
     },
     formatDate(dateString) {
       if (!dateString) return 'N/A'
