@@ -175,4 +175,48 @@ export default {
   margin: 0;
   line-height: 1.6;
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2rem;
+    letter-spacing: 0.15em;
+  }
+  
+  .hero {
+    padding: var(--spacing-xl);
+  }
+  
+  .tagline {
+    font-size: var(--font-size-base);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 1.5rem;
+  }
+  
+  .hero {
+    padding: var(--spacing-lg);
+    border-left: none;
+    border-right: none;
+  }
+  
+  .tagline {
+    font-size: var(--font-size-sm);
+  }
+  
+  .cta-buttons {
+    flex-direction: column;
+  }
+  
+  .cta-buttons .btn {
+    width: 100%;
+  }
+  
+  .feature-card {
+    padding: var(--spacing-lg);
+  }
+}
 </style>

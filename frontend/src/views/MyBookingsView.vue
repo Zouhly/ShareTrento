@@ -211,4 +211,33 @@ export default {
   padding: var(--spacing-lg);
   border-top: var(--border-light);
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .booking-route {
+    word-break: break-word;
+  }
+  
+  .card-body,
+  .card-footer {
+    padding: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .booking-detail {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+}
 </style>
