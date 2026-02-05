@@ -5,22 +5,6 @@
       <div class="header-line"></div>
     </div>
 
-    <!-- Map Toggle -->
-    <div class="view-toggle">
-      <button 
-        :class="['toggle-btn', { active: viewMode === 'list' }]"
-        @click="viewMode = 'list'"
-      >
-        List View
-      </button>
-      <button 
-        :class="['toggle-btn', { active: viewMode === 'map' }]"
-        @click="viewMode = 'map'"
-      >
-        Map View
-      </button>
-    </div>
-
     <!-- Search Form -->
     <div class="search-card">
       <div class="search-header">
@@ -69,57 +53,87 @@
     <div v-if="error" class="alert alert-error">{{ error }}</div>
     <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
 
-    <!-- Empty State -->
-    <div v-if="!loading && trips.length === 0" class="empty-state">
-      <p>No trips found. Try adjusting your search criteria.</p>
-    </div>
-
-    <!-- Map View -->
-    <div v-if="viewMode === 'map' && trips.length > 0" class="map-container">
-      <TripMap :trips="trips" @trip-click="scrollToTrip" />
-    </div>
-
-    <!-- Trips Grid -->
-    <div class="trips-grid" v-if="trips.length > 0">
-      <div v-for="trip in trips" :key="trip._id" :id="'trip-' + trip._id" class="trip-card">
-        <div class="card-header">
-          <span class="trip-route">{{ formatLocation(trip.origin) }} - {{ formatLocation(trip.destination) }}</span>
-          <span class="badge" :class="trip.availableSeats <= 1 ? 'badge-warning' : 'badge-success'">
-            {{ trip.availableSeats }} seat{{ trip.availableSeats !== 1 ? 's' : '' }}
-          </span>
-        </div>
-        
-        <div class="card-body">
-          <div class="trip-detail">
-            <span class="detail-label">Departure</span>
-            <span class="detail-value">{{ formatDate(trip.departureTime) }}</span>
-          </div>
-          <div class="trip-detail">
-            <span class="detail-label">Driver</span>
-            <span class="detail-value">{{ trip.driverId?.name || 'Unknown' }}</span>
-          </div>
-          <div class="trip-detail" v-if="trip.driverId?.car?.brand">
-            <span class="detail-label">Car</span>
-            <span class="detail-value">{{ formatCar(trip.driverId.car) }}</span>
-          </div>
-          <div class="trip-detail">
-            <span class="detail-label">Price</span>
-            <span class="detail-value price">{{ trip.price === 0 ? 'Free' : `EUR ${trip.price.toFixed(2)}` }}</span>
-          </div>
+    <!-- Main Content: List + Map Side by Side -->
+    <div v-if="!loading" class="trips-content">
+      <!-- Trips List Panel (Left) -->
+      <div class="list-panel">
+        <!-- Empty State -->
+        <div v-if="trips.length === 0" class="empty-state">
+          <p>No trips found. Try adjusting your search criteria.</p>
         </div>
 
-        <div class="card-footer" v-if="canBook">
+        <!-- Trips List -->
+        <div 
+          v-for="trip in trips" 
+          :key="trip._id" 
+          :id="'trip-' + trip._id" 
+          class="trip-card"
+          :class="{ selected: selectedTrip?._id === trip._id }"
+          @click="selectTrip(trip)"
+        >
+          <div class="card-header">
+            <span class="trip-route">{{ formatLocation(trip.origin) }} - {{ formatLocation(trip.destination) }}</span>
+            <span class="badge" :class="trip.availableSeats <= 1 ? 'badge-warning' : 'badge-success'">
+              {{ trip.availableSeats }} seat{{ trip.availableSeats !== 1 ? 's' : '' }}
+            </span>
+          </div>
+          
+          <div class="card-body">
+            <div class="trip-detail">
+              <span class="detail-label">Departure</span>
+              <span class="detail-value">{{ formatDate(trip.departureTime) }}</span>
+            </div>
+            <div class="trip-detail">
+              <span class="detail-label">Driver</span>
+              <span class="detail-value">{{ trip.driverId?.name || 'Unknown' }}</span>
+            </div>
+            <div class="trip-detail" v-if="trip.driverId?.car?.brand">
+              <span class="detail-label">Car</span>
+              <span class="detail-value">{{ formatCar(trip.driverId.car) }}</span>
+            </div>
+            <div class="trip-detail">
+              <span class="detail-label">Price</span>
+              <span class="detail-value price">{{ trip.price === 0 ? 'Free' : `EUR ${trip.price.toFixed(2)}` }}</span>
+            </div>
+          </div>
+
+          <div class="card-footer" v-if="canBook">
+            <button 
+              @click.stop="joinTrip(trip._id)" 
+              class="btn btn-primary btn-block"
+              :disabled="trip.availableSeats === 0 || bookingInProgress"
+            >
+              {{ bookingInProgress === trip._id ? 'Booking...' : 'Join Trip' }}
+            </button>
+          </div>
+
+          <div class="card-footer" v-else-if="!isLoggedIn">
+            <router-link to="/login" class="btn btn-block" @click.stop>Login to Book</router-link>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map Panel (Right - always visible) -->
+      <div class="map-panel">
+        <div class="map-header">
+          <span class="map-label">{{ selectedTrip ? 'Selected Trip' : 'All Trips' }}</span>
           <button 
-            @click="joinTrip(trip._id)" 
-            class="btn btn-primary btn-block"
-            :disabled="trip.availableSeats === 0 || bookingInProgress"
+            v-if="selectedTrip" 
+            class="btn btn-sm"
+            @click="clearSelection"
           >
-            {{ bookingInProgress === trip._id ? 'Booking...' : 'Join Trip' }}
+            Show All
           </button>
         </div>
-
-        <div class="card-footer" v-else-if="!isLoggedIn">
-          <router-link to="/login" class="btn btn-block">Login to Book</router-link>
+        <div class="map-wrapper">
+          <TripMap 
+            v-if="displayedTrips.length > 0"
+            :trips="displayedTrips" 
+            @trip-click="selectTrip"
+          />
+          <div v-else class="map-empty">
+            No trips to display on map
+          </div>
         </div>
       </div>
     </div>
@@ -142,7 +156,7 @@ export default {
       error: null,
       successMessage: null,
       bookingInProgress: null,
-      viewMode: 'list',
+      selectedTrip: null,
       searchForm: {
         origin: '',
         destination: '',
@@ -157,6 +171,14 @@ export default {
     canBook() {
       const user = JSON.parse(localStorage.getItem('user') || 'null')
       return user?.role === 'PASSENGER'
+    },
+    displayedTrips() {
+      // If a trip is selected, show only that trip on the map
+      // Otherwise show all trips
+      if (this.selectedTrip) {
+        return [this.selectedTrip]
+      }
+      return this.trips
     }
   },
   async created() {
@@ -168,17 +190,21 @@ export default {
       if (typeof location === 'string') return location
       return location?.address || 'Unknown'
     },
-    scrollToTrip(trip) {
-      const el = document.getElementById('trip-' + trip._id)
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        el.classList.add('highlight')
-        setTimeout(() => el.classList.remove('highlight'), 2000)
+    selectTrip(trip) {
+      // Toggle selection - if clicking the same trip, deselect it
+      if (this.selectedTrip?._id === trip._id) {
+        this.selectedTrip = null
+      } else {
+        this.selectedTrip = trip
       }
+    },
+    clearSelection() {
+      this.selectedTrip = null
     },
     async loadAllTrips() {
       this.loading = true
       this.error = null
+      this.selectedTrip = null
       
       try {
         const response = await tripsApi.getAll()
@@ -193,6 +219,8 @@ export default {
       if (!this.searchForm.origin && !this.searchForm.destination && !this.searchForm.departureTime) {
         return this.loadAllTrips()
       }
+
+      this.selectedTrip = null  // Clear selection when searching
 
       if (this.searchForm.origin && this.searchForm.destination && this.searchForm.departureTime) {
         this.loading = true
@@ -266,15 +294,22 @@ export default {
 </script>
 
 <style scoped>
+.trips-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .page-header {
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--spacing-md);
+  flex-shrink: 0;
 }
 
 .page-header h1 {
   font-weight: 300;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
 }
 
 .header-line {
@@ -283,20 +318,21 @@ export default {
   background: var(--color-border);
 }
 
-/* Search Card */
+/* Search Card - Compact */
 .search-card {
   border: var(--border);
-  padding: var(--spacing-xl);
-  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
   background: var(--color-bg-card);
+  flex-shrink: 0;
 }
 
 .search-header {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
 }
 
 .search-label {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--color-text-muted);
@@ -304,9 +340,13 @@ export default {
 
 .form-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-lg);
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.form-row .form-group {
+  margin-bottom: 0;
 }
 
 .search-actions {
@@ -314,39 +354,125 @@ export default {
   gap: var(--spacing-md);
 }
 
-/* Trips Grid */
-.trips-grid {
+/* Main Content Layout - List Left (30%), Map Right (70%) */
+.trips-content {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: minmax(280px, 30%) 1fr;
   gap: var(--spacing-lg);
+  height: calc(100vh - 320px);
+  min-height: 400px;
 }
 
+/* List Panel (Left) */
+.list-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  overflow-y: auto;
+  padding-right: var(--spacing-sm);
+}
+
+/* Custom scrollbar for list panel */
+.list-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.list-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.list-panel::-webkit-scrollbar-thumb {
+  background: var(--color-border-light);
+}
+
+.list-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border);
+}
+
+/* Map Panel (Right) */
+.map-panel {
+  display: flex;
+  flex-direction: column;
+  border: var(--border);
+  background: var(--color-bg-card);
+  min-height: 0;
+}
+
+.map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: var(--border-light);
+  flex-shrink: 0;
+}
+
+.map-label {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+
+.map-wrapper {
+  flex: 1;
+  min-height: 0;
+}
+
+.map-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* Trip Card - Compact */
 .trip-card {
   border: var(--border);
   background: var(--color-bg-card);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.trip-card:hover {
+  border-color: var(--color-text);
+  transform: translateX(2px);
+}
+
+.trip-card.selected {
+  border-color: var(--color-text);
+  background: var(--color-bg);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
   border-bottom: var(--border-light);
 }
 
 .trip-route {
   font-weight: 500;
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  margin-right: var(--spacing-sm);
 }
 
 .card-body {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
 }
 
 .trip-detail {
   display: flex;
   justify-content: space-between;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
 }
 
 .trip-detail:last-child {
@@ -354,14 +480,14 @@ export default {
 }
 
 .detail-label {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-text-muted);
 }
 
 .detail-value {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
 }
 
 .detail-value.price {
@@ -369,49 +495,59 @@ export default {
 }
 
 .card-footer {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
   border-top: var(--border-light);
 }
 
-/* View Toggle */
-.view-toggle {
-  display: flex;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
+/* Button small variant */
+.btn-sm {
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-xs);
 }
 
-.toggle-btn {
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border: var(--border);
-  background: transparent;
-  cursor: pointer;
-  font-size: var(--font-size-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: all 0.2s;
+/* Responsive - Stack on smaller screens */
+@media (max-width: 768px) {
+  .trips-content {
+    grid-template-columns: 1fr;
+    height: auto;
+    gap: var(--spacing-md);
+  }
+  
+  .list-panel {
+    order: 2;
+    max-height: 50vh;
+    padding-right: 0;
+  }
+  
+  .map-panel {
+    order: 1;
+    min-height: 300px;
+  }
+  
+  .search-card {
+    padding: var(--spacing-md);
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 
-.toggle-btn.active {
-  background: var(--color-text);
-  color: var(--color-bg);
-}
-
-.toggle-btn:hover:not(.active) {
-  background: var(--color-bg);
-}
-
-/* Map Container */
-.map-container {
-  margin-bottom: var(--spacing-xl);
-}
-
-/* Trip Highlight Animation */
-.trip-card.highlight {
-  animation: highlight-pulse 0.5s ease-in-out 2;
-}
-
-@keyframes highlight-pulse {
-  0%, 100% { border-color: var(--color-border); }
-  50% { border-color: var(--color-text); box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .trips-content {
+    gap: var(--spacing-sm);
+  }
+  
+  .map-panel {
+    min-height: 250px;
+  }
+  
+  .list-panel {
+    max-height: 40vh;
+  }
 }
 </style>

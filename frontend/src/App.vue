@@ -174,10 +174,11 @@ export default {
 /* Main Content */
 .main-content {
   flex: 1;
-  padding: var(--spacing-2xl);
-  max-width: 1200px;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  overflow: hidden;
 }
 
 /* Footer - Minimal */

@@ -9,8 +9,9 @@
       @ready="onMapReady"
     >
       <l-tile-layer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png"
+        attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://stamen.com/">Stamen Design</a>'
+        class="grayscale-tiles"
       />
       
       <!-- Trip markers -->
@@ -154,17 +155,75 @@ export default {
 
 <style scoped>
 .trip-map {
-  height: 400px;
+  height: 100%;
   width: 100%;
-  border: var(--border);
+}
+
+/* Grayscale filter for map tiles to match skeletal design */
+:deep(.leaflet-tile-pane) {
+  filter: grayscale(20%) contrast(1.05);
+}
+
+/* Style popups to match skeletal design */
+:deep(.leaflet-popup-content-wrapper) {
+  border-radius: 0;
+  border: 1.5px solid #1a1a1a;
+  box-shadow: none;
+  padding: 0;
+}
+
+:deep(.leaflet-popup-content) {
+  margin: 8px 12px;
+}
+
+:deep(.leaflet-popup-tip) {
+  background: #1a1a1a;
+  box-shadow: none;
+}
+
+:deep(.leaflet-popup-close-button) {
+  color: #1a1a1a !important;
 }
 
 .popup-content {
-  font-size: 12px;
-  line-height: 1.4;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #1a1a1a;
 }
 
 .popup-content strong {
   font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Style map controls */
+:deep(.leaflet-control-zoom) {
+  border: 1.5px solid #1a1a1a !important;
+  border-radius: 0 !important;
+}
+
+:deep(.leaflet-control-zoom a) {
+  border-radius: 0 !important;
+  border-bottom: 1px solid #d0d0d0 !important;
+  color: #1a1a1a !important;
+  background: #ffffff !important;
+}
+
+:deep(.leaflet-control-zoom a:last-child) {
+  border-bottom: none !important;
+}
+
+:deep(.leaflet-control-zoom a:hover) {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+:deep(.leaflet-control-attribution) {
+  font-size: 9px;
+  background: rgba(255,255,255,0.9) !important;
+  padding: 2px 6px;
 }
 </style>
