@@ -48,8 +48,8 @@ describe('Booking Endpoints', () => {
       .post('/api/trips')
       .set('Authorization', `Bearer ${driverToken}`)
       .send({
-        origin: 'Trento Centro',
-        destination: 'Rovereto',
+        origin: { address: 'Trento Centro', lat: 46.0679, lng: 11.1211 },
+        destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
         departureTime: new Date(Date.now() + 86400000).toISOString(),
         availableSeats: 2,
         price: 5
@@ -112,8 +112,8 @@ describe('Booking Endpoints', () => {
         .post('/api/trips')
         .set('Authorization', `Bearer ${driverToken}`)
         .send({
-          origin: 'Trento',
-          destination: 'Bolzano',
+          origin: { address: 'Trento', lat: 46.0679, lng: 11.1211 },
+          destination: { address: 'Bolzano', lat: 46.4983, lng: 11.3548 },
           departureTime: new Date(Date.now() + 86400000).toISOString(),
           availableSeats: 1,
           price: 10
