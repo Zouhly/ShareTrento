@@ -87,9 +87,9 @@
               <span class="detail-label">Driver</span>
               <span class="detail-value">{{ trip.driverId?.name || 'Unknown' }}</span>
             </div>
-            <div class="trip-detail" v-if="trip.driverId?.car?.brand">
+            <div class="trip-detail">
               <span class="detail-label">Car</span>
-              <span class="detail-value">{{ formatCar(trip.driverId.car) }}</span>
+              <span class="detail-value">{{ formatCar(trip.driverId?.car) }}</span>
             </div>
             <div class="trip-detail">
               <span class="detail-label">Price</span>
