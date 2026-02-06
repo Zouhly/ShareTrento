@@ -1,0 +1,13 @@
+{
+  "enabled": false,
+  "provider": "gmail",
+  "fromEmail": "your.gmail@gmail.com",
+  "appUrl": "http://localhost:5173",
+  "smtp": {
+    "host": "smtp.gmail.com",
+    "port": 465,
+    "user": "your.gmail@gmail.com",
+    "pass": "your_app_password",
+    "secure": true
+  }
+}

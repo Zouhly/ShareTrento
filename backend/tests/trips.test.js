@@ -21,6 +21,19 @@ describe('Trip Endpoints', () => {
     driverToken = driverRes.body.data.token;
     driverId = driverRes.body.data.user._id;
 
+    // Add car info to driver
+    await request(app)
+      .put('/api/auth/profile')
+      .set('Authorization', `Bearer ${driverToken}`)
+      .send({
+        car: {
+          brand: 'Fiat',
+          model: 'Panda',
+          color: 'White',
+          seats: 5
+        }
+      });
+
     // Create a passenger
     const passengerRes = await request(app)
       .post('/api/auth/register')

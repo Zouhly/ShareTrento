@@ -32,11 +32,12 @@
         :zoom="14"
         :center="[modelValue.lat, modelValue.lng]"
         :use-global-leaflet="false"
-        style="height: 150px; width: 100%;"
+        style="height: 120px; width: 100%;"
+        :options="{ zoomControl: false, attributionControl: false }"
       >
         <l-tile-layer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png"
+          attribution='&copy; Stadia Maps &copy; Stamen Design'
         />
         <l-marker :lat-lng="[modelValue.lat, modelValue.lng]" />
       </l-map>
@@ -228,5 +229,14 @@ export default {
 .map-preview {
   margin-top: var(--spacing-sm);
   border: var(--border);
+}
+
+/* Grayscale filter for map tiles to match skeletal design */
+:deep(.leaflet-tile-pane) {
+  filter: grayscale(20%) contrast(1.05);
+}
+
+:deep(.leaflet-control-attribution) {
+  display: none;
 }
 </style>

@@ -9,6 +9,14 @@ const createTrip = async (req, res, next) => {
   try {
     const { origin, destination, departureTime, availableSeats, price } = req.body;
 
+    // Check if driver has car information
+    if (!req.user.car || !req.user.car.brand || !req.user.car.model || !req.user.car.seats) {
+      return res.status(400).json({
+        success: false,
+        message: 'You must add your car information before creating trips. Go to Profile to add your car details.'
+      });
+    }
+
     // Validate required fields
     if (!origin || !destination || !departureTime || availableSeats === undefined || price === undefined) {
       return res.status(400).json({

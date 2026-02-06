@@ -202,4 +202,56 @@ export default {
   margin: 0 var(--spacing-md);
   color: var(--color-border-light);
 }
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .navbar {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .nav-links {
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  
+  .nav-links a {
+    font-size: var(--font-size-xs);
+  }
+  
+  .nav-divider,
+  .user-badge {
+    display: none;
+  }
+  
+  .main-content {
+    padding: var(--spacing-md);
+  }
+  
+  .footer {
+    padding: var(--spacing-md);
+  }
+  
+  .footer-content {
+    font-size: var(--font-size-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-brand {
+    font-size: var(--font-size-base);
+  }
+  
+  .nav-links {
+    gap: var(--spacing-xs);
+  }
+  
+  .nav-btn-outline {
+    padding: var(--spacing-xs) var(--spacing-sm) !important;
+  }
+  
+  .main-content {
+    padding: var(--spacing-sm);
+  }
+}
 </style>

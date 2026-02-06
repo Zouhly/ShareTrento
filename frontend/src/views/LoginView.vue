@@ -137,4 +137,17 @@ export default {
   margin-left: var(--spacing-sm);
   font-weight: 500;
 }
+
+/* Responsive */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: var(--spacing-lg);
+    border-left: none;
+    border-right: none;
+  }
+  
+  .auth-header h2 {
+    font-size: var(--font-size-xl);
+  }
+}
 </style>
