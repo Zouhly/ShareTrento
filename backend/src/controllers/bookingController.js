@@ -1,4 +1,5 @@
 const { Booking, Trip } = require('../models');
+const { sendBookingNotifications } = require('../utils/mailer');
 
 /**
  * Join a trip (create booking)
@@ -101,6 +102,20 @@ const joinTrip = async (req, res, next) => {
     // Populate for response
     await booking.populate('tripId', 'origin destination departureTime');
     await booking.populate('passengerId', 'name email');
+
+    // Send email notifications (non-blocking for booking flow)
+    try {
+      const tripWithDriver = await Trip.findById(trip._id)
+        .populate('driverId', 'name email car');
+
+      await sendBookingNotifications({
+        trip: tripWithDriver,
+        passenger: req.user
+      });
+    } catch (emailError) {
+      // Log and continue so booking succeeds even if email fails
+      console.warn('Booking notification email failed:', emailError.message);
+    }
 
     res.status(201).json({
       success: true,
