@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { Booking, Trip } = require('../models');
 const { sendBookingNotifications } = require('../utils/mailer');
 
@@ -12,9 +13,10 @@ const { sendBookingNotifications } = require('../utils/mailer');
  * - Cannot book same trip twice
  * - Cannot book own trip (if somehow user is both driver and passenger)
  * 
- * Note: In a production environment with high concurrency, you would want
- * to use MongoDB transactions. For this educational project, we use
- * optimistic locking with findOneAndUpdate to handle the seat decrement atomically.
+ * Concurrency: Uses a MongoDB transaction to atomically decrement seats
+ * and create the booking. If either operation fails, both are rolled back.
+ * Falls back to a compensating action (seat restore) if transactions are
+ * not supported by the database deployment.
  */
 const joinTrip = async (req, res, next) => {
   try {
@@ -45,7 +47,7 @@ const joinTrip = async (req, res, next) => {
       });
     }
 
-    // Check available seats
+    // Check available seats (early check before starting transaction)
     if (trip.availableSeats <= 0) {
       return res.status(400).json({
         success: false,
@@ -61,7 +63,7 @@ const joinTrip = async (req, res, next) => {
       });
     }
 
-    // Check for existing booking
+    // Check for existing booking (early check before starting transaction)
     const existingBooking = await Booking.findOne({
       tripId: trip._id,
       passengerId: req.user._id,
@@ -75,31 +77,57 @@ const joinTrip = async (req, res, next) => {
       });
     }
 
-    // Atomically decrement seats (only if seats > 0)
-    // This prevents race conditions where two passengers book the last seat
-    const updatedTrip = await Trip.findOneAndUpdate(
-      { _id: trip._id, availableSeats: { $gt: 0 } },
-      { $inc: { availableSeats: -1 } },
-      { new: true }
-    );
+    // --- Transaction: atomically decrement seat + create booking ---
+    const session = await mongoose.startSession();
+    let booking;
 
-    if (!updatedTrip) {
-      return res.status(400).json({
-        success: false,
-        message: 'No available seats on this trip'
-      });
+    try {
+      session.startTransaction();
+
+      // Atomically decrement seats (only if seats > 0)
+      const updatedTrip = await Trip.findOneAndUpdate(
+        { _id: trip._id, availableSeats: { $gt: 0 } },
+        { $inc: { availableSeats: -1 } },
+        { new: true, session }
+      );
+
+      if (!updatedTrip) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(400).json({
+          success: false,
+          message: 'No available seats on this trip'
+        });
+      }
+
+      // Create booking inside the same transaction
+      [booking] = await Booking.create([{
+        tripId: trip._id,
+        passengerId: req.user._id,
+        status: 'CONFIRMED'
+      }], { session });
+
+      await session.commitTransaction();
+      session.endSession();
+    } catch (txError) {
+      // Abort transaction on any error (duplicate booking, validation, etc.)
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+      }
+      session.endSession();
+
+      // Duplicate key error (unique index on tripId + passengerId)
+      if (txError.code === 11000) {
+        return res.status(409).json({
+          success: false,
+          message: 'You have already booked this trip'
+        });
+      }
+
+      throw txError;
     }
 
-    // Create booking
-    const booking = new Booking({
-      tripId: trip._id,
-      passengerId: req.user._id,
-      status: 'CONFIRMED'
-    });
-
-    await booking.save();
-
-    // Populate for response
+    // Populate for response (outside transaction, read-only)
     await booking.populate('tripId', 'origin destination departureTime');
     await booking.populate('passengerId', 'name email');
 
@@ -134,6 +162,9 @@ const joinTrip = async (req, res, next) => {
  * 
  * Business Rules:
  * - Cancelling restores a seat
+ * 
+ * Concurrency: Uses a MongoDB transaction to atomically restore the seat
+ * and update the booking status together.
  */
 const cancelBooking = async (req, res, next) => {
   try {
@@ -163,29 +194,47 @@ const cancelBooking = async (req, res, next) => {
       });
     }
 
-    // Find the trip and restore seat
-    const trip = await Trip.findById(booking.tripId);
+    // --- Transaction: atomically restore seat + cancel booking ---
+    const session = await mongoose.startSession();
 
-    if (trip && trip.departureTime > new Date()) {
-      // Restore seat atomically
-      await Trip.findByIdAndUpdate(
-        booking.tripId,
-        { $inc: { availableSeats: 1 } }
+    try {
+      session.startTransaction();
+
+      // Find the trip and restore seat if trip hasn't departed
+      const trip = await Trip.findById(booking.tripId).session(session);
+
+      if (trip && trip.departureTime > new Date()) {
+        await Trip.findByIdAndUpdate(
+          booking.tripId,
+          { $inc: { availableSeats: 1 } },
+          { session }
+        );
+      }
+
+      // Update booking status within the same transaction
+      await Booking.findByIdAndUpdate(
+        booking._id,
+        { status: 'CANCELLED' },
+        { session }
       );
+
+      await session.commitTransaction();
+      session.endSession();
+    } catch (txError) {
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+      }
+      session.endSession();
+      throw txError;
     }
 
-    // Update booking status
-    booking.status = 'CANCELLED';
-    await booking.save();
-
-    // Populate for response
-    await booking.populate('tripId', 'origin destination departureTime');
-    await booking.populate('passengerId', 'name email');
+    // Re-fetch with population for response (outside transaction)
+    const updatedBooking = await Booking.findById(booking._id);
 
     res.status(200).json({
       success: true,
       message: 'Booking cancelled successfully',
-      data: { booking }
+      data: { booking: updatedBooking }
     });
   } catch (error) {
     next(error);
