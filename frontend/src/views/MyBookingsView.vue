@@ -32,10 +32,6 @@
             <span class="detail-value">{{ formatDate(booking.tripId?.departureTime) }}</span>
           </div>
           <div class="booking-detail">
-            <span class="detail-label">Price</span>
-            <span class="detail-value price">{{ booking.tripId?.price === 0 ? 'Free' : `EUR ${booking.tripId?.price?.toFixed(2) || 'N/A'}` }}</span>
-          </div>
-          <div class="booking-detail">
             <span class="detail-label">Booked On</span>
             <span class="detail-value">{{ formatDate(booking.createdAt) }}</span>
           </div>
@@ -50,13 +46,62 @@
             {{ cancelling === booking._id ? 'Cancelling...' : 'Cancel Booking' }}
           </button>
         </div>
+
+        <div class="card-footer" v-else-if="booking.status === 'CONFIRMED' && !isFutureTrip(booking)">
+          <button
+            v-if="!reviewedTrips[booking.tripId?._id]"
+            @click="openReviewModal(booking)"
+            class="btn btn-primary btn-sm"
+          >
+            Review Driver
+          </button>
+          <span v-else class="review-submitted">✓ Reviewed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div v-if="showReviewModal" class="modal-overlay" @click.self="closeReviewModal">
+      <div class="modal-card">
+        <h3>Review Driver</h3>
+        <p class="modal-trip">{{ formatLocation(reviewBooking?.tripId?.origin) }} &rarr; {{ formatLocation(reviewBooking?.tripId?.destination) }}</p>
+        
+        <div class="rating-selector">
+          <span
+            v-for="star in 5"
+            :key="star"
+            class="star"
+            :class="{ active: star <= reviewForm.rating }"
+            @click="reviewForm.rating = star"
+          >&#9733;</span>
+        </div>
+
+        <div class="form-group">
+          <label for="reviewComment">Comment (optional)</label>
+          <textarea
+            id="reviewComment"
+            v-model="reviewForm.comment"
+            placeholder="How was your ride?"
+            rows="3"
+            maxlength="500"
+          ></textarea>
+        </div>
+
+        <div v-if="reviewError" class="alert alert-error">{{ reviewError }}</div>
+
+        <div class="modal-actions">
+          <button class="btn" @click="closeReviewModal">Cancel</button>
+          <button class="btn btn-primary" @click="submitReview" :disabled="submittingReview">
+            {{ submittingReview ? 'Submitting...' : 'Submit Review' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { bookingsApi } from '../api'
+import { bookingsApi, reviewsApi } from '../api'
 
 export default {
   name: 'MyBookingsView',
@@ -66,11 +111,18 @@ export default {
       loading: false,
       error: null,
       success: null,
-      cancelling: null
+      cancelling: null,
+      showReviewModal: false,
+      reviewBooking: null,
+      reviewForm: { rating: 5, comment: '' },
+      reviewError: null,
+      submittingReview: false,
+      reviewedTrips: {}
     }
   },
   async created() {
     await this.loadBookings()
+    await this.loadMyReviews()
   },
   methods: {
     async loadBookings() {
@@ -130,6 +182,49 @@ export default {
         hour: '2-digit',
         minute: '2-digit'
       })
+    },
+    async loadMyReviews() {
+      try {
+        const res = await reviewsApi.getMyReviews()
+        const reviews = res.data.data.reviews
+        const map = {}
+        for (const r of reviews) {
+          const tripId = typeof r.tripId === 'string' ? r.tripId : r.tripId?._id
+          if (tripId) map[tripId] = true
+        }
+        this.reviewedTrips = map
+      } catch (e) {
+        // Ignore
+      }
+    },
+    openReviewModal(booking) {
+      this.reviewBooking = booking
+      this.reviewForm = { rating: 5, comment: '' }
+      this.reviewError = null
+      this.showReviewModal = true
+    },
+    closeReviewModal() {
+      this.showReviewModal = false
+      this.reviewBooking = null
+    },
+    async submitReview() {
+      this.submittingReview = true
+      this.reviewError = null
+      try {
+        const tripId = this.reviewBooking.tripId?._id || this.reviewBooking.tripId
+        await reviewsApi.create({
+          tripId,
+          rating: this.reviewForm.rating,
+          comment: this.reviewForm.comment || undefined
+        })
+        this.reviewedTrips = { ...this.reviewedTrips, [tripId]: true }
+        this.success = 'Review submitted successfully!'
+        this.closeReviewModal()
+      } catch (err) {
+        this.reviewError = err.response?.data?.message || 'Failed to submit review'
+      } finally {
+        this.submittingReview = false
+      }
     }
   }
 }
@@ -210,6 +305,70 @@ export default {
 .card-footer {
   padding: var(--spacing-lg);
   border-top: var(--border-light);
+}
+
+.review-submitted {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Review Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: var(--color-bg-card);
+  border: var(--border);
+  padding: var(--spacing-2xl);
+  max-width: 420px;
+  width: 90%;
+}
+
+.modal-card h3 {
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--spacing-sm);
+}
+
+.modal-trip {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-lg);
+}
+
+.rating-selector {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.rating-selector .star {
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: var(--color-border);
+  transition: color 0.15s;
+}
+
+.rating-selector .star.active {
+  color: #f5a623;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
 }
 
 /* Responsive */

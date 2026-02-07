@@ -37,10 +37,6 @@
             <span class="detail-label">Available Seats</span>
             <span class="detail-value">{{ trip.availableSeats }}</span>
           </div>
-          <div class="trip-detail">
-            <span class="detail-label">Price</span>
-            <span class="detail-value price">{{ trip.price === 0 ? 'Free' : `EUR ${trip.price.toFixed(2)}` }}</span>
-          </div>
         </div>
 
         <div class="passengers-section" v-if="tripBookings[trip._id]">
