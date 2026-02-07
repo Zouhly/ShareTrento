@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { Trip, Booking } = require('../models');
 
 /**
@@ -225,20 +226,39 @@ const deleteTrip = async (req, res, next) => {
       });
     }
 
-    // Check if there are any confirmed bookings
-    const activeBookings = await Booking.countDocuments({
-      tripId: trip._id,
-      status: 'CONFIRMED'
-    });
+    // Use a transaction to atomically check bookings and delete trip
+    // This prevents a new booking from being created between the check and delete
+    const session = await mongoose.startSession();
 
-    if (activeBookings > 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot delete trip with active bookings'
-      });
+    try {
+      session.startTransaction();
+
+      // Check for active bookings inside the transaction
+      const activeBookings = await Booking.countDocuments({
+        tripId: trip._id,
+        status: 'CONFIRMED'
+      }).session(session);
+
+      if (activeBookings > 0) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot delete trip with active bookings'
+        });
+      }
+
+      await Trip.findByIdAndDelete(req.params.id).session(session);
+
+      await session.commitTransaction();
+      session.endSession();
+    } catch (txError) {
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+      }
+      session.endSession();
+      throw txError;
     }
-
-    await Trip.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,

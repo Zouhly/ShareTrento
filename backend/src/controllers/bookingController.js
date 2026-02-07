@@ -186,21 +186,30 @@ const cancelBooking = async (req, res, next) => {
       });
     }
 
-    // Check if already cancelled
-    if (booking.status === 'CANCELLED') {
-      return res.status(400).json({
-        success: false,
-        message: 'Booking is already cancelled'
-      });
-    }
-
     // --- Transaction: atomically restore seat + cancel booking ---
+    // The status check is done inside the transaction to prevent double-cancel races
     const session = await mongoose.startSession();
 
     try {
       session.startTransaction();
 
-      // Find the trip and restore seat if trip hasn't departed
+      // Atomically set status to CANCELLED only if not already cancelled
+      const updatedBooking = await Booking.findOneAndUpdate(
+        { _id: booking._id, status: { $ne: 'CANCELLED' } },
+        { status: 'CANCELLED' },
+        { new: true, session }
+      ).setOptions({ _skipPopulate: true });
+
+      if (!updatedBooking) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(400).json({
+          success: false,
+          message: 'Booking is already cancelled'
+        });
+      }
+
+      // Restore seat if trip hasn't departed
       const trip = await Trip.findById(booking.tripId).session(session);
 
       if (trip && trip.departureTime > new Date()) {
@@ -210,13 +219,6 @@ const cancelBooking = async (req, res, next) => {
           { session }
         );
       }
-
-      // Update booking status within the same transaction
-      await Booking.findByIdAndUpdate(
-        booking._id,
-        { status: 'CANCELLED' },
-        { session }
-      );
 
       await session.commitTransaction();
       session.endSession();

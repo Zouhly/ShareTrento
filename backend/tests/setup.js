@@ -1,19 +1,22 @@
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+const { MongoMemoryReplSet } = require('mongodb-memory-server');
 
 let mongoServer;
 
 /**
  * Test setup file
- * Uses in-memory MongoDB for isolated testing
+ * Uses in-memory MongoDB replica set for isolated testing
+ * (replica set required for transaction support)
  */
 
 // Increase timeout for slower systems
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
-// Connect to in-memory database before all tests
+// Connect to in-memory replica set before all tests
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
+  mongoServer = await MongoMemoryReplSet.create({
+    replSet: { count: 1, storageEngine: 'wiredTiger' }
+  });
   const mongoUri = mongoServer.getUri();
   
   await mongoose.connect(mongoUri);

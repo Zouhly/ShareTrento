@@ -60,6 +60,7 @@ describe('Review Endpoints', () => {
 
     // Create a trip in the past (so it can be reviewed)
     // We need to create it directly in the DB since the API won't allow past dates
+    // Use validateBeforeSave: false to bypass the departure-time-in-future validator
     const { Trip } = require('../src/models');
     const trip = new Trip({
       origin: { address: 'Trento Centro', lat: 46.0679, lng: 11.1211 },
@@ -68,7 +69,7 @@ describe('Review Endpoints', () => {
       availableSeats: 2,
       driverId
     });
-    await trip.save();
+    await trip.save({ validateBeforeSave: false });
     tripId = trip._id.toString();
 
     // Create a confirmed booking for passenger (directly in DB)
