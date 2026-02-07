@@ -64,12 +64,6 @@ const tripSchema = new mongoose.Schema({
       message: 'Available seats must be an integer'
     }
   },
-  price: {
-    type: Number,
-    required: [true, 'Price is required'],
-    min: [0, 'Price cannot be negative'],
-    max: [1000, 'Price cannot exceed 1000']
-  },
   // Reference to the driver who created this trip
   driverId: {
     type: mongoose.Schema.Types.ObjectId,

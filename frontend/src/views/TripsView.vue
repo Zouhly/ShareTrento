@@ -91,9 +91,12 @@
               <span class="detail-label">Car</span>
               <span class="detail-value">{{ formatCar(trip.driverId?.car) }}</span>
             </div>
-            <div class="trip-detail">
-              <span class="detail-label">Price</span>
-              <span class="detail-value price">{{ trip.price === 0 ? 'Free' : `EUR ${trip.price.toFixed(2)}` }}</span>
+            <div class="trip-detail" v-if="driverRatings[trip.driverId?._id]">
+              <span class="detail-label">Driver Rating</span>
+              <span class="detail-value">
+                {{ driverRatings[trip.driverId._id].average.toFixed(1) }} ★
+                ({{ driverRatings[trip.driverId._id].count }})
+              </span>
             </div>
           </div>
 
@@ -141,7 +144,7 @@
 </template>
 
 <script>
-import { tripsApi, bookingsApi } from '../api'
+import { tripsApi, bookingsApi, reviewsApi } from '../api'
 import TripMap from '../components/TripMap.vue'
 
 export default {
@@ -157,6 +160,7 @@ export default {
       successMessage: null,
       bookingInProgress: null,
       selectedTrip: null,
+      driverRatings: {},
       searchForm: {
         origin: '',
         destination: '',
@@ -209,6 +213,7 @@ export default {
       try {
         const response = await tripsApi.getAll()
         this.trips = response.data.data.trips
+        await this.loadDriverRatings()
       } catch (err) {
         this.error = err.response?.data?.message || 'Failed to load trips'
       } finally {
@@ -288,6 +293,28 @@ export default {
       if (car.brand) parts.push(car.brand)
       if (car.model) parts.push(car.model)
       return parts.join(' ') || 'N/A'
+    },
+    async loadDriverRatings() {
+      // Collect unique driver IDs
+      const driverIds = [...new Set(this.trips.map(t => t.driverId?._id).filter(Boolean))]
+      for (const driverId of driverIds) {
+        if (!this.driverRatings[driverId]) {
+          try {
+            const res = await reviewsApi.getDriverReviews(driverId)
+            if (res.data.data.reviewCount > 0) {
+              this.driverRatings = {
+                ...this.driverRatings,
+                [driverId]: {
+                  average: res.data.data.averageRating,
+                  count: res.data.data.reviewCount
+                }
+              }
+            }
+          } catch (e) {
+            // Ignore rating fetch errors
+          }
+        }
+      }
     }
   }
 }
@@ -488,10 +515,6 @@ export default {
 
 .detail-value {
   font-size: var(--font-size-xs);
-}
-
-.detail-value.price {
-  font-weight: 600;
 }
 
 .card-footer {

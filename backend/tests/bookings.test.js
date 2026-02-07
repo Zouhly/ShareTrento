@@ -64,8 +64,7 @@ describe('Booking Endpoints', () => {
         origin: { address: 'Trento Centro', lat: 46.0679, lng: 11.1211 },
         destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
         departureTime: new Date(Date.now() + 86400000).toISOString(),
-        availableSeats: 2,
-        price: 5
+        availableSeats: 2
       });
     tripId = tripRes.body.data.trip._id;
   });
@@ -128,8 +127,7 @@ describe('Booking Endpoints', () => {
           origin: { address: 'Trento', lat: 46.0679, lng: 11.1211 },
           destination: { address: 'Bolzano', lat: 46.4983, lng: 11.3548 },
           departureTime: new Date(Date.now() + 86400000).toISOString(),
-          availableSeats: 1,
-          price: 10
+          availableSeats: 1
         });
       const singleSeatTripId = tripRes.body.data.trip._id;
 

@@ -66,4 +66,11 @@ export const bookingsApi = {
   getTripBookings: (tripId) => api.get(`/bookings/trip/${tripId}`)
 }
 
+// Reviews API
+export const reviewsApi = {
+  create: (data) => api.post('/reviews', data),
+  getDriverReviews: (driverId) => api.get(`/reviews/driver/${driverId}`),
+  getMyReviews: () => api.get('/reviews/my-reviews')
+}
+
 export default api

@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 
-const { authRoutes, tripRoutes, bookingRoutes } = require('./routes');
+const { authRoutes, tripRoutes, bookingRoutes, reviewRoutes } = require('./routes');
 const { errorHandler, notFound } = require('./middleware');
 const swaggerSpec = require('./config/swagger');
 
@@ -42,6 +42,7 @@ const createApp = () => {
   app.use('/api/auth', authRoutes);
   app.use('/api/trips', tripRoutes);
   app.use('/api/bookings', bookingRoutes);
+  app.use('/api/reviews', reviewRoutes);
 
   // Error handling
   app.use(notFound);

@@ -124,7 +124,6 @@ router.get('/:id', tripController.getTripById);
  *               - destination
  *               - departureTime
  *               - availableSeats
- *               - price
  *             properties:
  *               origin:
  *                 type: string
@@ -141,12 +140,6 @@ router.get('/:id', tripController.getTripById);
  *                 minimum: 1
  *                 maximum: 8
  *                 example: 3
- *               price:
- *                 type: number
- *                 minimum: 0
- *                 maximum: 1000
- *                 example: 5.00
- *                 description: Price per seat in EUR
  *     responses:
  *       201:
  *         description: Trip created successfully

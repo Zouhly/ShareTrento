@@ -162,6 +162,44 @@ To access protected endpoints:
               description: 'Error message'
             }
           }
+        },
+        Review: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Review ID'
+            },
+            tripId: {
+              type: 'string',
+              description: 'Trip ID'
+            },
+            reviewerId: {
+              $ref: '#/components/schemas/User'
+            },
+            driverId: {
+              type: 'string',
+              description: 'Driver user ID'
+            },
+            rating: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 5,
+              description: 'Rating from 1 to 5 stars'
+            },
+            comment: {
+              type: 'string',
+              description: 'Optional review comment'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time'
+            }
+          }
         }
       }
     },
@@ -177,6 +215,10 @@ To access protected endpoints:
       {
         name: 'Bookings',
         description: 'Booking management endpoints'
+      },
+      {
+        name: 'Reviews',
+        description: 'Driver review endpoints'
       }
     ]
   },
