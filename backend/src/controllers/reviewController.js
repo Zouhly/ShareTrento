@@ -82,7 +82,18 @@ const createReview = async (req, res, next) => {
       comment: comment || undefined
     });
 
-    await review.save();
+    try {
+      await review.save();
+    } catch (saveError) {
+      // Handle duplicate review from concurrent submission (unique index)
+      if (saveError.code === 11000) {
+        return res.status(409).json({
+          success: false,
+          message: 'You have already reviewed this trip'
+        });
+      }
+      throw saveError;
+    }
 
     // Populate for response
     await review.populate('reviewerId', 'name email');

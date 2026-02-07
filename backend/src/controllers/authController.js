@@ -67,7 +67,18 @@ const register = async (req, res, next) => {
 
     const user = new User(userData);
 
-    await user.save();
+    try {
+      await user.save();
+    } catch (saveError) {
+      // Handle duplicate email from concurrent registration
+      if (saveError.code === 11000) {
+        return res.status(409).json({
+          success: false,
+          message: 'User with this email already exists'
+        });
+      }
+      throw saveError;
+    }
 
     // Generate JWT token
     const token = generateToken(user);
@@ -192,11 +203,23 @@ const updateProfile = async (req, res, next) => {
     }
 
     // Update user
-    const user = await User.findByIdAndUpdate(
-      userId,
-      updateData,
-      { new: true, runValidators: true }
-    );
+    let user;
+    try {
+      user = await User.findByIdAndUpdate(
+        userId,
+        updateData,
+        { new: true, runValidators: true }
+      );
+    } catch (updateError) {
+      // Handle duplicate email from concurrent profile update
+      if (updateError.code === 11000) {
+        return res.status(409).json({
+          success: false,
+          message: 'Email is already in use'
+        });
+      }
+      throw updateError;
+    }
 
     res.status(200).json({
       success: true,
