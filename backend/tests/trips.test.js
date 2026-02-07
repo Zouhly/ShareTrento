@@ -51,8 +51,7 @@ describe('Trip Endpoints', () => {
       origin: { address: 'Trento Centro', lat: 46.0679, lng: 11.1211 },
       destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
       departureTime: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
-      availableSeats: 3,
-      price: 5
+      availableSeats: 3
     };
 
     it('should allow DRIVER to create a trip', async () => {
@@ -122,8 +121,7 @@ describe('Trip Endpoints', () => {
           origin: { address: 'Trento', lat: 46.0679, lng: 11.1211 },
           destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
           departureTime: new Date(Date.now() + 86400000).toISOString(),
-          availableSeats: 3,
-          price: 5
+          availableSeats: 3
         });
 
       await request(app)
@@ -133,8 +131,7 @@ describe('Trip Endpoints', () => {
           origin: { address: 'Trento', lat: 46.0679, lng: 11.1211 },
           destination: { address: 'Bolzano', lat: 46.4983, lng: 11.3548 },
           departureTime: new Date(Date.now() + 172800000).toISOString(),
-          availableSeats: 2,
-          price: 8
+          availableSeats: 2
         });
     });
 
@@ -176,8 +173,7 @@ describe('Trip Endpoints', () => {
           origin: { address: 'Trento Centro', lat: 46.0679, lng: 11.1211 },
           destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
           departureTime: baseTime.toISOString(),
-          availableSeats: 3,
-          price: 5
+          availableSeats: 3
         });
 
       // Trip 20 minutes later (within 30 min window)
@@ -188,8 +184,7 @@ describe('Trip Endpoints', () => {
           origin: { address: 'Trento Centro', lat: 46.0679, lng: 11.1211 },
           destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
           departureTime: new Date(baseTime.getTime() + 20 * 60000).toISOString(),
-          availableSeats: 2,
-          price: 6
+          availableSeats: 2
         });
 
       // Trip 2 hours later (outside 30 min window)
@@ -200,8 +195,7 @@ describe('Trip Endpoints', () => {
           origin: { address: 'Trento Centro', lat: 46.0679, lng: 11.1211 },
           destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
           departureTime: new Date(baseTime.getTime() + 2 * 3600000).toISOString(),
-          availableSeats: 4,
-          price: 7
+          availableSeats: 4
         });
     });
 
@@ -231,8 +225,7 @@ describe('Trip Endpoints', () => {
           origin: { address: 'Trento', lat: 46.0679, lng: 11.1211 },
           destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
           departureTime: new Date(Date.now() + 86400000).toISOString(),
-          availableSeats: 3,
-          price: 5
+          availableSeats: 3
         });
 
       const res = await request(app)

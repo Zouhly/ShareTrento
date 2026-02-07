@@ -67,20 +67,6 @@
           <small>Maximum {{ maxSeats }} seats (your car has {{ user?.car?.seats }} total)</small>
         </div>
 
-        <div class="form-group">
-          <label for="price">Price per Seat (EUR)</label>
-          <input
-            type="number"
-            id="price"
-            v-model.number="form.price"
-            required
-            min="0"
-            max="1000"
-            step="0.50"
-          />
-          <small>Set 0 for free rides</small>
-        </div>
-
         <button type="submit" class="btn btn-primary btn-block" :disabled="loading || !isFormValid">
           {{ loading ? 'Creating...' : 'Create Trip' }}
         </button>
@@ -104,8 +90,7 @@ export default {
         origin: { address: '', lat: null, lng: null },
         destination: { address: '', lat: null, lng: null },
         departureTime: '',
-        availableSeats: 3,
-        price: 5
+        availableSeats: 3
       },
       loading: false,
       error: null,
@@ -163,8 +148,7 @@ export default {
           origin: this.form.origin,
           destination: this.form.destination,
           departureTime: new Date(this.form.departureTime).toISOString(),
-          availableSeats: this.form.availableSeats,
-          price: this.form.price
+          availableSeats: this.form.availableSeats
         }
 
         await tripsApi.create(tripData)
@@ -175,8 +159,7 @@ export default {
           origin: { address: '', lat: null, lng: null },
           destination: { address: '', lat: null, lng: null },
           departureTime: '',
-          availableSeats: 3,
-          price: 5
+          availableSeats: 3
         }
 
         setTimeout(() => {

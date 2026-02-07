@@ -33,7 +33,7 @@
               <br />
               <small>to {{ trip.destination.address }}</small>
               <br />
-              <small>{{ formatPrice(trip.price) }} · {{ trip.availableSeats }} seats</small>
+              <small>{{ trip.availableSeats }} seats available</small>
             </div>
           </l-popup>
         </l-marker>
@@ -145,9 +145,6 @@ export default {
           }
         }, 100);
       }
-    },
-    formatPrice(price) {
-      return price === 0 ? 'Free' : `€${price.toFixed(2)}`;
     }
   }
 }
