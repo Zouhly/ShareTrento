@@ -11,6 +11,7 @@
             <router-link v-if="isDriver" to="/create-trip">Create</router-link>
             <router-link v-if="isDriver" to="/my-trips">My Trips</router-link>
             <router-link v-if="isPassenger" to="/my-bookings">Bookings</router-link>
+            <router-link to="/favorites">Favorites</router-link>
             <router-link to="/profile">Profile</router-link>
             <span class="nav-divider"></span>
             <span class="user-badge">{{ user?.name }}</span>

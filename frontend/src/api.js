@@ -73,4 +73,11 @@ export const reviewsApi = {
   getMyReviews: () => api.get('/reviews/my-reviews')
 }
 
+// Favorites API
+export const favoritesApi = {
+  getAll: () => api.get('/favorites'),
+  create: (data) => api.post('/favorites', data),
+  delete: (id) => api.delete(`/favorites/${id}`)
+}
+
 export default api
