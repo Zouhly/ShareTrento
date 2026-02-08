@@ -42,6 +42,15 @@
         <div class="search-actions">
           <button type="submit" class="btn btn-primary">Search</button>
           <button type="button" class="btn" @click="loadAllTrips">Show All</button>
+          <button
+            v-if="isLoggedIn && searchForm.origin && searchForm.destination"
+            type="button"
+            class="btn"
+            @click="saveSearchAsFavorite"
+            :disabled="savingFavorite"
+          >
+            {{ savingFavorite ? 'Saving...' : '☆ Save Search' }}
+          </button>
         </div>
       </form>
     </div>
@@ -144,7 +153,7 @@
 </template>
 
 <script>
-import { tripsApi, bookingsApi, reviewsApi } from '../api'
+import { tripsApi, bookingsApi, reviewsApi, favoritesApi } from '../api'
 import TripMap from '../components/TripMap.vue'
 
 export default {
@@ -160,6 +169,7 @@ export default {
       successMessage: null,
       bookingInProgress: null,
       selectedTrip: null,
+      savingFavorite: false,
       driverRatings: {},
       searchForm: {
         origin: '',
@@ -186,7 +196,16 @@ export default {
     }
   },
   async created() {
-    await this.loadAllTrips()
+    // Pick up query params from a favorite search redirect
+    const q = this.$route.query
+    if (q.origin || q.destination || q.departureTime) {
+      this.searchForm.origin = q.origin || ''
+      this.searchForm.destination = q.destination || ''
+      this.searchForm.departureTime = q.departureTime || ''
+      await this.searchTrips()
+    } else {
+      await this.loadAllTrips()
+    }
   },
   methods: {
     formatLocation(location) {
@@ -314,6 +333,35 @@ export default {
             // Ignore rating fetch errors
           }
         }
+      }
+    },
+    async saveSearchAsFavorite() {
+      if (!this.searchForm.origin || !this.searchForm.destination) return
+
+      this.savingFavorite = true
+      this.error = null
+      this.successMessage = null
+
+      try {
+        const label = `${this.searchForm.origin} → ${this.searchForm.destination}`
+        const payload = {
+          label,
+          origin: this.searchForm.origin,
+          destination: this.searchForm.destination
+        }
+        // Extract HH:mm from the datetime-local value if present
+        if (this.searchForm.departureTime) {
+          const parts = this.searchForm.departureTime.split('T')
+          if (parts[1]) {
+            payload.preferredTime = parts[1].substring(0, 5)
+          }
+        }
+        await favoritesApi.create(payload)
+        this.successMessage = 'Search saved to favorites!'
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Failed to save favorite'
+      } finally {
+        this.savingFavorite = false
       }
     }
   }
