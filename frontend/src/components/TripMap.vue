@@ -73,6 +73,7 @@
 
 <script>
 import "leaflet/dist/leaflet.css";
+import { latLngBounds } from "leaflet";
 import { LMap, LTileLayer, LMarker, LIcon, LPopup, LPolyline } from "@vue-leaflet/vue-leaflet";
 
 export default {
@@ -140,7 +141,7 @@ export default {
         setTimeout(() => {
           const map = this.$refs.map?.leafletObject;
           if (map) {
-            const bounds = L.latLngBounds(coords);
+            const bounds = latLngBounds(coords);
             map.fitBounds(bounds, { padding: [30, 30] });
           }
         }, 100);
