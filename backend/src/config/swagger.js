@@ -83,6 +83,26 @@ To access protected endpoints:
             }
           }
         },
+        Location: {
+          type: 'object',
+          properties: {
+            address: {
+              type: 'string',
+              description: 'Human-readable address'
+            },
+            lat: {
+              type: 'number',
+              format: 'double',
+              description: 'Latitude (-90 to 90)'
+            },
+            lng: {
+              type: 'number',
+              format: 'double',
+              description: 'Longitude (-180 to 180)'
+            }
+          },
+          required: ['address', 'lat', 'lng']
+        },
         Trip: {
           type: 'object',
           properties: {
@@ -91,12 +111,10 @@ To access protected endpoints:
               description: 'Trip ID'
             },
             origin: {
-              type: 'string',
-              description: 'Trip origin location'
+              $ref: '#/components/schemas/Location'
             },
             destination: {
-              type: 'string',
-              description: 'Trip destination location'
+              $ref: '#/components/schemas/Location'
             },
             departureTime: {
               type: 'string',
@@ -219,6 +237,10 @@ To access protected endpoints:
       {
         name: 'Reviews',
         description: 'Driver review endpoints'
+      },
+      {
+        name: 'Favorites',
+        description: 'Favorite search management endpoints'
       }
     ]
   },
