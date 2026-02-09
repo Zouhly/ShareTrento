@@ -2,30 +2,33 @@
 
 A simulated car-sharing web application for the city of Trento, built as a university software engineering project.
 
-## 🚗 Project Overview
+## Project Overview
 
 ShareTrento allows drivers to offer trips and passengers to book available seats. The focus is on software architecture, REST APIs, JWT-based authentication, and clean code practices.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-- **Frontend**: Vue.js 3 (SPA), Vite, Vue Router, Axios
+- **Frontend**: Vue.js 3 (SPA), Vite, Vue Router, Axios, Leaflet (maps)
 - **Backend**: Node.js, Express.js
 - **Database**: MongoDB with Mongoose ODM
 - **Authentication**: JWT with role-based access (DRIVER / PASSENGER)
+- **Maps & Geocoding**: Leaflet + OpenStreetMap Nominatim
+- **Email Notifications**: Nodemailer (booking confirmations)
 - **API Documentation**: OpenAPI/Swagger
 - **Testing**: Jest + Supertest
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ShareTrento/
 ├── backend/
 │   ├── src/
-│   │   ├── config/         # Database & Swagger config
+│   │   ├── config/         # Database, email & Swagger config
 │   │   ├── controllers/    # Route handlers
 │   │   ├── middleware/     # Auth & error handling
 │   │   ├── models/         # Mongoose schemas
 │   │   ├── routes/         # API routes
+│   │   ├── utils/          # Mailer utility
 │   │   ├── app.js          # Express app setup
 │   │   └── index.js        # Server entry point
 │   ├── tests/              # Jest test files
@@ -35,6 +38,7 @@ ShareTrento/
 └── frontend/
     ├── src/
     │   ├── views/          # Vue page components
+    │   ├── components/     # Reusable components (LocationPicker, TripMap)
     │   ├── App.vue         # Root component
     │   ├── main.js         # Vue app entry
     │   └── api.js          # Axios API client
@@ -42,7 +46,7 @@ ShareTrento/
     └── package.json
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -77,7 +81,7 @@ cd backend
 npm test
 ```
 
-## 📚 API Endpoints
+## API Endpoints
 
 ### Authentication
 | Method | Endpoint | Description | Auth |
@@ -85,6 +89,8 @@ npm test
 | POST | `/api/auth/register` | Register new user | - |
 | POST | `/api/auth/login` | Login user | - |
 | GET | `/api/auth/me` | Get current user | Required |
+| PUT | `/api/auth/profile` | Update profile | Required |
+| PUT | `/api/auth/password` | Change password | Required |
 
 ### Trips
 | Method | Endpoint | Description | Auth |
@@ -104,7 +110,21 @@ npm test
 | GET | `/api/bookings/my-bookings` | Get user's bookings | Required |
 | GET | `/api/bookings/trip/:tripId` | Get trip's bookings | DRIVER |
 
-## 🔐 Authentication
+### Reviews
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/api/reviews` | Create a review | PASSENGER |
+| GET | `/api/reviews/driver/:driverId` | Get driver reviews | - |
+| GET | `/api/reviews/my-reviews` | Get user's reviews | Required |
+
+### Favorites
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/api/favorites` | Get saved searches | Required |
+| POST | `/api/favorites` | Save a search | Required |
+| DELETE | `/api/favorites/:id` | Delete a saved search | Required |
+
+## Authentication
 
 The API uses JWT (JSON Web Token) for authentication.
 
@@ -115,48 +135,47 @@ The API uses JWT (JSON Web Token) for authentication.
 - **DRIVER**: Can create trips and view their trip's bookings
 - **PASSENGER**: Can search for trips and make bookings
 
-## 📋 Business Rules
+## Business Rules
 
 1. Only DRIVER role can create trips
 2. Only PASSENGER role can join trips
 3. Passengers can only join trips with available seats (> 0)
-4. Joining a trip decreases available seats by 1
+4. Joining a trip decreases available seats by 1 (atomic via MongoDB transactions)
 5. Cancelling a booking restores the seat
 6. Trip matching criteria:
-   - Same origin (case-insensitive)
-   - Same destination (case-insensitive)
-   - Departure time within ±30 minutes
+   - Origin within ~5km radius (or matching address)
+   - Destination within ~5km radius (or matching address)
+   - Departure time within +/- 30 minutes
+7. Drivers must add car info before creating trips
+8. Reviews can only be left by passengers who completed a trip
+9. Deleting a trip with active bookings is not allowed
 
-## 🧪 Test Coverage
+## Test Coverage
 
-The test suite covers:
-- ✅ User registration and login
-- ✅ JWT token generation and validation
-- ✅ Protected route rejection without token
-- ✅ Role-based access control (DRIVER can create trips, PASSENGER cannot)
-- ✅ Trip creation with validation
-- ✅ Booking creation with seat management
-- ✅ Booking cancellation with seat restoration
-- ✅ No booking when no seats available
+The test suite (67 tests) covers:
+- User registration and login
+- JWT token generation and validation
+- Protected route rejection without token
+- Role-based access control (DRIVER can create trips, PASSENGER cannot)
+- Trip creation with validation
+- Trip deletion (own trips, active booking guard, authorization)
+- Booking creation with seat management
+- Booking cancellation with seat restoration
+- No booking when no seats available
+- Driver reviews (creation, duplicate prevention, authorization)
+- Profile update (name, email, car info, duplicate email rejection)
+- Password change (success, wrong current password, validation)
+- Favorite searches (CRUD, duplicate prevention, authorization)
 
-## 🎓 Educational Notes
+## Features
 
-This project intentionally simplifies certain aspects:
-- Payments are simulated
-- Locations are simple text strings (no real maps)
-- Notifications are not implemented
-- Email verification is not implemented
-- Refresh tokens are not implemented
+- Interactive map with Leaflet for trip visualization (origin/destination markers, route lines)
+- Location picker with geocoding (OpenStreetMap Nominatim, biased to Trentino region)
+- Email notifications on booking (driver + passenger)
+- Driver rating system with star reviews
+- Favorite search saving and quick re-search
+- Responsive UI with role-aware navigation
 
-The focus is on demonstrating:
-- Clean Express architecture
-- RESTful API design
-- JWT authentication flow
-- Role-based authorization
-- MongoDB data modeling
-- Vue.js SPA patterns
-- API documentation with OpenAPI/Swagger
-
-## 📄 License
+## License
 
 University project - Educational use only
