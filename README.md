@@ -135,38 +135,6 @@ The API uses JWT (JSON Web Token) for authentication.
 - **DRIVER**: Can create trips and view their trip's bookings
 - **PASSENGER**: Can search for trips and make bookings
 
-## Business Rules
-
-1. Only DRIVER role can create trips
-2. Only PASSENGER role can join trips
-3. Passengers can only join trips with available seats (> 0)
-4. Joining a trip decreases available seats by 1 (atomic via MongoDB transactions)
-5. Cancelling a booking restores the seat
-6. Trip matching criteria:
-   - Origin within ~5km radius (or matching address)
-   - Destination within ~5km radius (or matching address)
-   - Departure time within +/- 30 minutes
-7. Drivers must add car info before creating trips
-8. Reviews can only be left by passengers who completed a trip
-9. Deleting a trip with active bookings is not allowed
-
-## Test Coverage
-
-The test suite (67 tests) covers:
-- User registration and login
-- JWT token generation and validation
-- Protected route rejection without token
-- Role-based access control (DRIVER can create trips, PASSENGER cannot)
-- Trip creation with validation
-- Trip deletion (own trips, active booking guard, authorization)
-- Booking creation with seat management
-- Booking cancellation with seat restoration
-- No booking when no seats available
-- Driver reviews (creation, duplicate prevention, authorization)
-- Profile update (name, email, car info, duplicate email rejection)
-- Password change (success, wrong current password, validation)
-- Favorite searches (CRUD, duplicate prevention, authorization)
-
 ## Features
 
 - Interactive map with Leaflet for trip visualization (origin/destination markers, route lines)
@@ -175,7 +143,3 @@ The test suite (67 tests) covers:
 - Driver rating system with star reviews
 - Favorite search saving and quick re-search
 - Responsive UI with role-aware navigation
-
-## License
-
-University project - Educational use only
