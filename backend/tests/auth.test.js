@@ -177,4 +177,142 @@ describe('Authentication Endpoints', () => {
       expect(res.statusCode).toBe(401);
     });
   });
+
+  describe('PUT /api/auth/profile', () => {
+    let token;
+
+    beforeEach(async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          name: 'Profile User',
+          email: 'profile@example.com',
+          password: 'password123',
+          role: 'DRIVER'
+        });
+      token = res.body.data.token;
+    });
+
+    it('should update user name', async () => {
+      const res = await request(app)
+        .put('/api/auth/profile')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'Updated Name' });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.user.name).toBe('Updated Name');
+    });
+
+    it('should update car info for driver', async () => {
+      const res = await request(app)
+        .put('/api/auth/profile')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          car: { brand: 'Fiat', model: 'Panda', color: 'White', seats: 5 }
+        });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.data.user.car.brand).toBe('Fiat');
+      expect(res.body.data.user.car.seats).toBe(5);
+    });
+
+    it('should reject duplicate email', async () => {
+      // Register another user
+      await request(app)
+        .post('/api/auth/register')
+        .send({
+          name: 'Other User',
+          email: 'taken@example.com',
+          password: 'password123',
+          role: 'PASSENGER'
+        });
+
+      const res = await request(app)
+        .put('/api/auth/profile')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ email: 'taken@example.com' });
+
+      expect(res.statusCode).toBe(409);
+    });
+
+    it('should reject unauthenticated request', async () => {
+      const res = await request(app)
+        .put('/api/auth/profile')
+        .send({ name: 'Hacker' });
+
+      expect(res.statusCode).toBe(401);
+    });
+  });
+
+  describe('PUT /api/auth/password', () => {
+    let token;
+
+    beforeEach(async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          name: 'Password User',
+          email: 'password@example.com',
+          password: 'password123',
+          role: 'PASSENGER'
+        });
+      token = res.body.data.token;
+    });
+
+    it('should change password successfully', async () => {
+      const res = await request(app)
+        .put('/api/auth/password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          currentPassword: 'password123',
+          newPassword: 'newpassword456'
+        });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+
+      // Verify login with new password works
+      const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: 'password@example.com',
+          password: 'newpassword456'
+        });
+      expect(loginRes.statusCode).toBe(200);
+    });
+
+    it('should reject with wrong current password', async () => {
+      const res = await request(app)
+        .put('/api/auth/password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          currentPassword: 'wrongpassword',
+          newPassword: 'newpassword456'
+        });
+
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('should reject short new password', async () => {
+      const res = await request(app)
+        .put('/api/auth/password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          currentPassword: 'password123',
+          newPassword: '123'
+        });
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should reject missing fields', async () => {
+      const res = await request(app)
+        .put('/api/auth/password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currentPassword: 'password123' });
+
+      expect(res.statusCode).toBe(400);
+    });
+  });
 });

@@ -244,4 +244,84 @@ describe('Trip Endpoints', () => {
       expect(res.statusCode).toBe(403);
     });
   });
+
+  describe('DELETE /api/trips/:id', () => {
+    let tripId;
+
+    beforeEach(async () => {
+      const res = await request(app)
+        .post('/api/trips')
+        .set('Authorization', `Bearer ${driverToken}`)
+        .send({
+          origin: { address: 'Trento', lat: 46.0679, lng: 11.1211 },
+          destination: { address: 'Rovereto', lat: 45.8903, lng: 11.0340 },
+          departureTime: new Date(Date.now() + 86400000).toISOString(),
+          availableSeats: 3
+        });
+      tripId = res.body.data.trip._id;
+    });
+
+    it('should allow driver to delete own trip with no bookings', async () => {
+      const res = await request(app)
+        .delete(`/api/trips/${tripId}`)
+        .set('Authorization', `Bearer ${driverToken}`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+
+      // Verify trip is gone
+      const getRes = await request(app).get(`/api/trips/${tripId}`);
+      expect(getRes.statusCode).toBe(404);
+    });
+
+    it('should not allow passenger to delete a trip', async () => {
+      const res = await request(app)
+        .delete(`/api/trips/${tripId}`)
+        .set('Authorization', `Bearer ${passengerToken}`);
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should not allow deleting a trip with active bookings', async () => {
+      // Book the trip as passenger
+      await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${passengerToken}`)
+        .send({ tripId });
+
+      const res = await request(app)
+        .delete(`/api/trips/${tripId}`)
+        .set('Authorization', `Bearer ${driverToken}`);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toContain('active bookings');
+    });
+
+    it('should return 404 for non-existent trip', async () => {
+      const fakeId = '507f1f77bcf86cd799439011';
+      const res = await request(app)
+        .delete(`/api/trips/${fakeId}`)
+        .set('Authorization', `Bearer ${driverToken}`);
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('should not allow a different driver to delete the trip', async () => {
+      // Create a second driver
+      const driver2Res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          name: 'Driver Two',
+          email: 'driver2@example.com',
+          password: 'password123',
+          role: 'DRIVER'
+        });
+
+      const res = await request(app)
+        .delete(`/api/trips/${tripId}`)
+        .set('Authorization', `Bearer ${driver2Res.body.data.token}`);
+
+      expect(res.statusCode).toBe(403);
+    });
+  });
 });
