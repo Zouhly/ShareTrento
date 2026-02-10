@@ -1,8 +1,14 @@
 import axios from 'axios'
 
+// In production, VITE_API_URL points to the Render backend (e.g. https://sharetrento-api.onrender.com)
+// In development, it falls back to '' so Vite's proxy handles /api requests
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api'
+
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json'
   }
