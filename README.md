@@ -2,6 +2,10 @@
 
 A simulated car-sharing web application for the city of Trento, built as a university software engineering project.
 
+## Link to video
+
+[Video](https://youtu.be/OtKgmbQ4YtY)
+
 ## Project Overview
 
 ShareTrento allows drivers to offer trips and passengers to book available seats. The focus is on software architecture, REST APIs, JWT-based authentication, and clean code practices.
